@@ -72,16 +72,20 @@ async function getBroadcasterId() {
 }
 
 function buildPollChoices(create) {
+	let response = [];
 	let choices = '';
 	for (let i = 0; i < data.choices.length; i++) {
 		let choice = data.choices[i];
-		if (create) {
-			choices += `> ${choice.title}\n> > Choice-ID: ${choice.id}\n`;
-		} else {
-			choices += `> ${choice.title}\n> > Choice-ID: ${choice.id}\n> > Votes: ${choice.votes}\n> > Channel Points Votes: ${choice.channel_points_votes}\n> > Bits Votes: ${choice.bits_votes}\n`;
+		response.push(`> ${choice.title}`);
+		response.push(`> > Choice-ID: ${choice.id}`);
+		if (!create) {
+			response.push(`> > Votes: ${choice.votes}`);
+			response.push(`> > Channel Points Votes: ${choice.channel_points_votes}`);
+			response.push(`> > Bits Votes: ${choice.bits_votes}\n`);
 		}
 	}
 	choices = choices.trim();
+	return response.join("\n");
 }
 
 function toDiscordTimestamp(twitchTime) {
@@ -104,27 +108,27 @@ function handleCommand(interaction) {
 		await validate(false).then(async (value) => {
 			switch (interaction.commandName) {
 				case 'poll':
-					createPoll(interaction);
+					await createPoll(interaction);
 					break;
 				case 'endpoll':
-					endPoll(interaction);
+					await endPoll(interaction);
 					break;
 				case 'getpoll':
-					getPoll(interaction);
+					await getPoll(interaction);
 					break;
 				case 'prediction':
-					createPrediction(interaction);
+					await createPrediction(interaction);
 					break;
 				case 'endprediction':
-					endPrediction(interaction);
+					await endPrediction(interaction);
 					break;
 				case 'getprediction':
-					getPrediction(interaction);
+					await getPrediction(interaction);
 					break;
 			}
 		}).catch((err) => {
 			await interaction.editReply({
-				content: 'Token validation/refresh failed!'
+				content: 'Token validation failed!'
 			});
 		});
 	}
@@ -164,23 +168,30 @@ async function createPoll(interaction) {
 			channel_points_per_vote: channelPointsPerVote
 		})
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
 			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			const data = res.data[0];
-			response = `Poll \`\`${data.title}\`\` successfully started!\n`;
+			response.push(`Poll \`\`${data.title}\`\` successfully started!\n`);
 			const choices = buildPollChoices(true);
-			response += `Poll-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nTitle: ${data.title}\nChoices:\n${choices}\n`;
-			response += `Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}\nPoll Status: ${data.status}\n`;
-			response += `Poll Duration: ${data.duration} seconds\nStarted at ${toDiscordTimestamp(data.started_at)}`;
+			response.push(`Title: ${data.title}`);
+			response.push(`Poll-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Choices:\n${choices}`);
+			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Poll Status: ${data.status}`);
+			response.push(`Poll Duration: ${data.duration} seconds`);
+			response.push(`Started At: ${toDiscordTimestamp(data.started_at)}`);
 		}
 		await interaction.editReply({
-			content: response
+			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
+			content: `Error creating Poll on Twitch: ${err}`
 		});
 		await validate(false);
 	});
@@ -205,23 +216,30 @@ async function endPoll(interaction) {
 			status: status
 		})
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
-			response = `Poll \`\`${data.title}\`\` successfully ended!\n`;
+			response.push(`Poll \`\`${data.title}\`\` successfully ended!`);
 			const choices = buildPollChoices(false);
-			response += `Poll-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nTitle: ${data.title}\nChoices:\n${choices}\n`;
-			response += `Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}\nPoll Status: ${data.status}\n`;
-			response += `Poll Duration: ${data.duration} seconds\nStarted at ${toDiscordTimestamp(data.started_at)}\nEnded at ${toDiscordTimestamp(data.ended_at)}`;
+			response.push(`Title: ${data.title}`);
+			response.push(`Poll-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Choices:\n${choices}`);
+			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Poll Status: ${data.status}`);
+			response.push(`Poll Duration: ${data.duration} seconds`);
+			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
+			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
 		}
 		await interaction.editReply({
-			content: response
+			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
+			content: `Error ending Poll on Twitch: ${err}`
 		});
 		await validate(false);
 	});
@@ -239,23 +257,29 @@ async function getPoll(interaction) {
 			'Content-Type': 'application/json'
 		}
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
-			response = `Got Poll \`\`${data.title}\`\` successfully!\n`;
+			response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
 			const choices = buildPollChoices(false);
-			response += `Poll-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nTitle: ${data.title}\nChoices:\n${choices}\n`;
-			response += `Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}\nPoll Status: ${data.status}\n`;
-			response += `Poll Duration: ${data.duration} seconds\nStarted at ${toDiscordTimestamp(data.started_at)}`;
+			response.push(`Title: ${data.title}`);
+			response.push(`Poll-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Choices:\n${choices}`);
+			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Poll Status: ${data.status}`);
+			response.push(`Poll Duration: ${data.duration} seconds`);
+			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
 		}
 		await interaction.editReply({
-			content: response
+			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
+			content: `Error getting Poll from Twitch: ${err}`
 		});
 		await validate(false);
 	});
@@ -291,27 +315,33 @@ async function createPrediction(interaction) {
 			prediction_window: duration * durationMultiplier
 		})
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
-			response = `Prediction \`\`${data.title}\`\` successfully started!\n`;
+			response.push(`Prediction \`\`${data.title}\`\` successfully started!`);
 			let outcomes = '';
 			for (let i = 0; i < data.outcomes.length; i++) {
-				outcomes += `> ${data.outcomes[i].title}\n> > Outcome-ID: ${data.outcomes[i].id}\n> > Outcome-Color: ${data.outcomes[i].color}\n`;
+				let outcome = data.outcomes[i];
+				outcomes += `> ${outcome.title}\n> > Outcome-ID: ${outcome.id}\n> > Outcome-Color: ${outcome.color}\n`;
 			}
 			outcomes = outcomes.trim();
-			response += `Title: ${data.title}\nPrediction-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nOutcomes:\n${outcomes}\n`;
-			response += `Prediction Window: ${data.prediction_window} seconds\nPrediction Status: ${data.status}\n`;
-			response += `Created At: ${toDiscordTimestamp(data.created_at)}`;
+			response.push(`Title: ${data.title}`);
+			response.push(`Prediction-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Outcomes:\n${outcomes}`);
+			response.push(`Prediction Window: ${data.prediction_window} seconds`);
+			response.push(`Prediction Status: ${data.status}`);
+			response.push(`Created At: ${toDiscordTimestamp(data.created_at)}`);
 		}
 		await interaction.editReply({
-			content: response
+			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
+			content: `Error creating prediction on Twitch: ${err}`
 		});
 		await validate(false);
 	});
@@ -338,33 +368,46 @@ async function endPrediction(interaction) {
 			winning_outcome_id: (winningOutcomeId ? winningOutcomeId : undefined)
 		})
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
-			response = `Prediction \`\`${data.title}\`\` successfully ended!\n`;
+			response.push(`Prediction \`\`${data.title}\`\` successfully ended!`);
 			let outcomes = '';
 			for (let i = 0; i < data.outcomes.length; i++) {
 				let outcome = data.outcomes[i];
-				outcomes += `> ${outcome.title}\n> > Outcome-ID: ${outcome.id}\n> > Users: ${outcome.users}\n> > Channel Points: ${outcome.channel_points}\n> > Color: ${outcome.color}\n`;
-				outcomes += '> > Top Predictors:\n';
+				outcomes.push(`> ${outcome.title}`);
+				outcomes.push(`> > Outcome-ID: ${outcome.id}`);
+				outcomes.push(`> > Users: ${outcome.users}`);
+				outcomes.push(`> > Channel Points: ${outcome.channel_points}`);
+				outcomes.push(`> > Color: ${outcome.color}`);
+				outcomes.push('> > Top Predictors:');
 				for (let j = 0; outcome.top_predictors && j < outcome.top_predictors.length; j++) {
 					let topPredictor = outcome.top_predictors[j].user;
-					outcomes += `> > > User: ${topPredictor.name} (${topPredictor.id})\n> > > > Channel Points used: ${topPredictor.channel_points_used}\n> > > > Channel Points won: ${topPredictor.channel_points_won}\n`;
+					outcomes.push(`> > > User: ${topPredictor.name} (${topPredictor.id})`);
+					outcomes.push(`> > > > Channel Points used: ${topPredictor.channel_points_used}`);
+					outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}\n`);
 				}
 			}
 			outcomes = outcomes.trim();
-			response += `Prediction-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nTitle: ${data.title}\nOutcomes:\n${outcomes}\nPrediction Window: ${data.prediction_window} seconds\n`;
-			response += `Prediction-Status: ${data.status}\nCreated at: ${toDiscordTimestamp(data.created_at)}\nEnded at ${toDiscordTimestamp(data.ended_at)}\n`;
+			response.push(`Title: ${data.title}`);
+			response.push(`Prediction-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Outcomes:\n${outcomes}`);
+			response.push(`Prediction Window: ${data.prediction_window} seconds\n`);
+			response.push(`Prediction-Status: ${data.status}`);
+			response.push(`Created at ${toDiscordTimestamp(data.created_at)}`);
+			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
 			response += `Locked at ${toDiscordTimestamp(data.locked_at)}`;
 		}
 		await interaction.editReply({
-			content: response
+			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
+			content: `Error ending prediction on Twitch: ${err}`
 		});
 		await validate(false);
 	});
@@ -382,40 +425,48 @@ async function getPrediction(interaction) {
 			'Content-Type': 'application/json'
 		}
 	}).then(res => res.json()).then(res => {
-		let response;
+		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
+			response.push(`Error: ${res.error}`);
+			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
-			response = `Got Prediction \`\`${data.title}\`\` successfully!\n`;
+			response.push(`Got Prediction \`\`${data.title}\`\` successfully!`);
 			let outcomes = '';
 			for (let i = 0; i < data.outcomes.length; i++) {
 				let outcome = data.outcomes[i];
-				outcomes += `> ${outcome.title}\n> > Outcome-ID: ${outcome.id}\n> > Users: ${outcome.users}\n> > Channel Points: ${outcome.channel_points}\n> > Color: ${outcome.color}\n`;
-				outcomes += '> > Top Predictors:\n';
-					for (let j = 0; outcome.top_predictors && j < outcome.top_predictors.length; j++) {
-						let topPredictor = outcome.top_predictors[j].user;
-						outcomes += `> > > User: ${topPredictor.name} (${topPredictor.id})\n> > > > Channel Points used: ${topPredictor.channel_points_used}\n> > > > Channel Points won: ${topPredictor.channel_points_won}\n`;
-					}
+				outcomes.push(`> ${outcome.title}`);
+				outcomes.push(`> > Outcome-ID: ${outcome.id}`);
+				outcomes.push(`> > Users: ${outcome.users}`);
+				outcomes.push(`> > Channel Points: ${outcome.channel_points}`);
+				outcomes.push(`> > Color: ${outcome.color}`);
+				outcomes.push('> > Top Predictors:');
+				for (let j = 0; outcome.top_predictors && j < outcome.top_predictors.length; j++) {
+					let topPredictor = outcome.top_predictors[j].user;
+					outcomes.push(`> > > User: ${topPredictor.name} (${topPredictor.id})`);
+					outcomes.push(`> > > > Channel Points used: ${topPredictor.channel_points_used}`);
+					outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}`);
 				}
-				outcomes = outcomes.trim();
-				response += `Prediction-ID: ${data.id}\nBroadcaster: ${data.broadcaster_name}\nTitle: ${data.title}\nOutcomes:\n${outcomes}\nPrediction Duration: ${data.prediction_window} seconds\n`;
-				response += `Prediction-Status: ${data.status}\nCreated at: ${toDiscordTimestamp(data.created_at)}\nEnded at ${toDiscordTimestamp(data.ended_at)}\n`;
-				response += `Locked at ${toDiscordTimestamp(data.locked_at)}`;
 			}
-			interaction.editReply({
-				content: response
-			});
-		}).catch(async (err) => {
-			interaction.editReply({
-				content: `Error while communicating with Twitch: ${err}\nValidating and probably requesting authorization on my hosts computer`
-			});
-			await validate(false);
-		});
-	}).catch((err) => {
+			outcomes = outcomes.trim();
+			response.push(`Title: ${data.title}`);
+			response.push(`Prediction-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Outcomes:\n${outcomes}`);
+			response.push(`Prediction Duration: ${data.prediction_window} seconds`);
+			response.push(`Prediction-Status: ${data.status}`);
+			response.push(`Created at ${toDiscordTimestamp(data.created_at)}`);
+			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
+			response.push(`Locked at ${toDiscordTimestamp(data.locked_at)}`);
+		}
 		interaction.editReply({
-			content: 'Token validation/refresh failed!'
+			content: response.join("\n")
 		});
+	}).catch(async (err) => {
+		interaction.editReply({
+			content: `Error getting prediction from Twitch: ${err}`
+		});
+		await validate(false);
 	});
 }
 
