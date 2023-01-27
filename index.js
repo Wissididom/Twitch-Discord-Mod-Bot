@@ -170,18 +170,18 @@ async function createPoll(interaction) {
 	}).then(res => res.json()).then(res => {
 		let response = [];
 		if (res.error) {
-			response = `Error: ${res.error}\nError-Message: ${res.message}`;
 			response.push(`Error: ${res.error}`);
 			response.push(`Error-Message: ${res.message}`);
 		} else {
 			const data = res.data[0];
+			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully started!\n`);
 			const choices = buildPollChoices(true);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
 			response.push(`Choices:\n${choices}`);
-			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Channel Points Voting ${channelPointsVoting}`);
 			response.push(`Poll Status: ${data.status}`);
 			response.push(`Poll Duration: ${data.duration} seconds`);
 			response.push(`Started At: ${toDiscordTimestamp(data.started_at)}`);
@@ -222,13 +222,14 @@ async function endPoll(interaction) {
 			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
+			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully ended!`);
 			const choices = buildPollChoices(false);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
 			response.push(`Choices:\n${choices}`);
-			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Channel Points Voting ${channelPointsVoting}`);
 			response.push(`Poll Status: ${data.status}`);
 			response.push(`Poll Duration: ${data.duration} seconds`);
 			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
@@ -263,13 +264,14 @@ async function getPoll(interaction) {
 			response.push(`Error-Message: ${res.message}`);
 		} else {
 			let data = res.data[0];
+			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
 			const choices = buildPollChoices(false);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
 			response.push(`Choices:\n${choices}`);
-			response.push(`Channel Points Voting ${data.channel_points_voting_enabled ? 'enabled' : 'disabled'}`);
+			response.push(`Channel Points Voting ${channelPointsVoting}`);
 			response.push(`Poll Status: ${data.status}`);
 			response.push(`Poll Duration: ${data.duration} seconds`);
 			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
@@ -322,16 +324,17 @@ async function createPrediction(interaction) {
 		} else {
 			let data = res.data[0];
 			response.push(`Prediction \`\`${data.title}\`\` successfully started!`);
-			let outcomes = '';
+			let outcomes = [];
 			for (let i = 0; i < data.outcomes.length; i++) {
 				let outcome = data.outcomes[i];
-				outcomes += `> ${outcome.title}\n> > Outcome-ID: ${outcome.id}\n> > Outcome-Color: ${outcome.color}\n`;
+				outcomes.push(`> ${outcome.title}`);
+				outcomes.push(`> > Outcome-ID: ${outcome.id}`);
+				outcomes.push(`> > Outcome-Color: ${outcome.color}`);
 			}
-			outcomes = outcomes.trim();
 			response.push(`Title: ${data.title}`);
 			response.push(`Prediction-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
-			response.push(`Outcomes:\n${outcomes}`);
+			response.push(`Outcomes:\n${outcomes.join("\n")}`);
 			response.push(`Prediction Window: ${data.prediction_window} seconds`);
 			response.push(`Prediction Status: ${data.status}`);
 			response.push(`Created At: ${toDiscordTimestamp(data.created_at)}`);
@@ -352,7 +355,7 @@ async function endPrediction(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	let status = interaction.options.getString('status');
 	status = status.substring(0, status.indexOf(' ')).trim();
-	const winningOutcomeId = interaction.options.getString('winning_outcome_id');
+	const winningOutcomeId = interaction.options.getString('winning_outcome_id') ?? undefined;
 	const predictionId = interaction.options.getString('id');
 	await fetch('https://api.twitch.tv/helix/predictions', {
 		method: 'PATCH',
@@ -365,7 +368,7 @@ async function endPrediction(interaction) {
 			broadcaster_id: broadcasterId,
 			id: predictionId,
 			status: status,
-			winning_outcome_id: (winningOutcomeId ? winningOutcomeId : undefined)
+			winning_outcome_id: winningOutcomeId
 		})
 	}).then(res => res.json()).then(res => {
 		let response = [];
