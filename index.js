@@ -33,14 +33,14 @@ client.on("ready", () => {
 });
 
 client.on("interactionCreate", interaction => {
-	if (interaction.isCommand())
-		handleInteraction(interaction);
+	if (interaction.isCommand() || interaction.isChatInputCommand())
+		handleCommand(interaction);
 });
 
-function handleInteraction(interaction) {
+function handleCommand(interaction) {
 	if (!process.env['ALLOWED_CHANNEL_ID']) {
 		interaction.reply({
-			content: `Please first set a channel where you want me to accept the commands! For <#${interaction.channel.id}> (${interaction.channel.name}) just add the line \`ALLOWED_CHANNEL_ID=${interaction.channel.id}\` to .env!`,
+			content: `Please first set a channel where you want to accept the commands! For <#${interaction.channel.id}> (${interaction.channel.name}) just set the value for \`ALLOWED_CHANNEL_ID\` to \`${interaction.channel.id}\` in the .env file!`,
 			ephemeral: process.env['EPHEMERAL'] == 'true'
 		});
 	} else if (interaction.channel.id != process.env['ALLOWED_CHANNEL_ID']) {
