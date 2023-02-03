@@ -4,7 +4,7 @@ LIBRARIES
 
 require('dotenv').config();
 
-const { getNoAllowedChannelIdError, getChannelNotAllowedError, getBroadcaster, getBroadcasterId, validate } = require('./util');
+const { getNoAllowedChannelIdError, getChannelNotAllowedError, getBroadcasterId, validate } = require('./util');
 const { createPoll, endPoll, getPoll } = require('./polls');
 const { createPrediction, endPrediction, getPrediction } = require('./predictions');
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
