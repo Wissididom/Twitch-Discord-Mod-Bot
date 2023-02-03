@@ -403,7 +403,7 @@ async function endPrediction(interaction) {
 			response.push(`Prediction-Status: ${data.status}`);
 			response.push(`Created at ${toDiscordTimestamp(data.created_at)}`);
 			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
-			response += `Locked at ${toDiscordTimestamp(data.locked_at)}`;
+			response.push(`Locked at ${toDiscordTimestamp(data.locked_at)}`);
 		}
 		await interaction.editReply({
 			content: response.join("\n")
