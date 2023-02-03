@@ -71,7 +71,7 @@ async function getBroadcasterId() {
 	return (await getBroadcaster()).id;
 }
 
-function buildPollChoices(create) {
+function buildPollChoices(data, create) {
 	let response = [];
 	let choices = '';
 	for (let i = 0; i < data.choices.length; i++) {
@@ -176,7 +176,7 @@ async function createPoll(interaction) {
 			const data = res.data[0];
 			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully started!\n`);
-			const choices = buildPollChoices(true);
+			const choices = buildPollChoices(data, true);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
@@ -224,7 +224,7 @@ async function endPoll(interaction) {
 			let data = res.data[0];
 			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully ended!`);
-			const choices = buildPollChoices(false);
+			const choices = buildPollChoices(data, false);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
@@ -266,7 +266,7 @@ async function getPoll(interaction) {
 			let data = res.data[0];
 			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
-			const choices = buildPollChoices(false);
+			const choices = buildPollChoices(data, false);
 			response.push(`Title: ${data.title}`);
 			response.push(`Poll-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
