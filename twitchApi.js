@@ -3,6 +3,21 @@ const {
 	toDiscordTimestamp
 } = require('./util.js');
 
+function getStatusResponse(res) {
+	switch (res.status) {
+		case 400:
+			return `Bad Request: ${json.message}`;
+		case 401:
+			return `Unauthorized: ${json.message}`;
+		case 404:
+			return `Not Found: ${json.message}`;
+		case 429:
+			return `Too Many Requests: ${json.message}`;
+		default:
+			return `${json.error} (${res.status}): ${json.message}`;
+	}
+}
+
 async function getUser(login) {
 	return (await fetch(`https://api.twitch.tv/helix/users?login=${login}`, {
 		headers: {
@@ -26,20 +41,7 @@ async function getPoll(clientId, accessToken, broadcasterId) {
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					case 404:
-						resolve(`Not Found: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			let response = [];
@@ -85,20 +87,7 @@ async function getPollId(clientId, accessToken, broadcasterId) {
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						reject(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						reject(`Unauthorized: ${json.message}`);
-						break;
-					case 404:
-						reject(`Not Found: ${json.message}`);
-						break;
-					default:
-						reject(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			if (json.error) {
@@ -138,17 +127,7 @@ async function createPoll(clientId, accessToken, broadcasterId, title, choices, 
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			const response = [];
@@ -200,17 +179,7 @@ async function endPoll(clientId, accessToken, broadcasterId, pollId, status) {
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			let response = [];
@@ -257,17 +226,7 @@ async function getPrediction(clientId, accessToken, broadcasterId) {
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			let response = [];
@@ -329,17 +288,7 @@ async function getPredictionId(clientId, accessToken, broadcasterId) {
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						reject(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						reject(`Unauthorized: ${json.message}`);
-						break;
-					default:
-						reject(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			if (json.error) {
@@ -377,20 +326,7 @@ async function createPrediction(clientId, accessToken, broadcasterId, title, out
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					case 429:
-						resolve(`Too Many Requests: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			let response = [];
@@ -442,20 +378,7 @@ async function endPrediction(clientId, accessToken, broadcasterId, predictionId,
 			});
 			const json = await res.json();
 			if (!res.ok) {
-				switch (res.status) {
-					case 400:
-						resolve(`Bad Request: ${json.message}`);
-						break;
-					case 401:
-						resolve(`Unauthorized: ${json.message}`);
-						break;
-					case 404:
-						resolve(`Not Found: ${json.message}`);
-						break;
-					default:
-						resolve(`${json.error} (${res.status}): ${json.message}`);
-						break;
-				}
+				resolve(getStatusResponse(res));
 				return;
 			}
 			let response = [];
