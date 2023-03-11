@@ -272,7 +272,7 @@ if (!mySecret) {
 } else {
 	if (fs.existsSync('./.tokens.json')) {
 		tokens = require('./.tokens.json');
-		validateTwitchToken().then(() => {
+		validateTwitchToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens.access_token, tokens.refresh_token, 'http://localhost').then(() => {
 			// Logs in with secret TOKEN
 			client.login(mySecret);
 		}).catch(() => {
