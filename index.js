@@ -76,40 +76,42 @@ async function handleCommand(interaction) {
 			content: getNoAllowedChannelIdError(interaction.channel),
 			ephemeral: process.env['EPHEMERAL'] == 'true'
 		});
-	} else if (interaction.channel.id != process.env['ALLOWED_CHANNEL_ID']) {
+		return;
+	}
+	if (interaction.channel.id != process.env['ALLOWED_CHANNEL_ID']) {
 		await interaction.reply({
 			content: getChannelNotAllowedError(interaction.channel),
 			ephemeral: process.env['EPHEMERAL'] == 'true'
 		});
-	} else {
-		await interaction.deferReply();
-		await validate(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens.access_token, tokens.refresh_token, false).then(async (value) => {
-			switch (interaction.commandName) {
-				case 'getpoll':
-					await getPollCommand(interaction);
-					break;
-				case 'poll':
-					await createPollCommand(interaction);
-					break;
-				case 'endpoll':
-					await endPollCommand(interaction);
-					break;
-				case 'getprediction':
-					await getPredictionCommand(interaction);
-					break;
-				case 'prediction':
-					await createPredictionCommand(interaction);
-					break;
-				case 'endprediction':
-					await endPredictionCommand(interaction);
-					break;
-			}
-		}).catch(async (err) => {
-			await interaction.editReply({
-				content: `Token validation failed! (${err})`
-			});
-		});
+		return;
 	}
+	await interaction.deferReply();
+	await validate(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens.access_token, tokens.refresh_token, false).then(async (value) => {
+		switch (interaction.commandName) {
+			case 'getpoll':
+				await getPollCommand(interaction);
+				break;
+			case 'poll':
+				await createPollCommand(interaction);
+				break;
+			case 'endpoll':
+				await endPollCommand(interaction);
+				break;
+			case 'getprediction':
+				await getPredictionCommand(interaction);
+				break;
+			case 'prediction':
+				await createPredictionCommand(interaction);
+				break;
+			case 'endprediction':
+				await endPredictionCommand(interaction);
+				break;
+		}
+	}).catch(async (err) => {
+		await interaction.editReply({
+			content: `Token validation failed! (${err})`
+		});
+	});
 }
 
 async function getPollCommand(interaction) {
