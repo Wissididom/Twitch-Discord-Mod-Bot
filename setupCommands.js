@@ -84,7 +84,7 @@ client.on("ready", () => {
 						value: 'TERMINATED'
 					},
 					{
-						name: 'archived (End the poll manually and do not allow it to be viewed publicly.)',
+						name: 'Archived (End the poll manually and do not allow it to be viewed publicly.)',
 						value: 'ARCHIVED'
 					}
 				]
