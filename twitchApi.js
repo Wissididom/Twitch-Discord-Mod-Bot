@@ -525,7 +525,7 @@ function getAccessTokenByAuthTokenEndpoint(clientId, clientSecret, code, redirec
 	return `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(redirectUri)}%3A${port}`;
 }
 
-function validate(clientId, clientSecret, accessToken, refreshToken, openBrowser = true) {
+function validateTwitchToken(clientId, clientSecret, accessToken, refreshToken, openBrowser = true) {
 	return new Promise(async (resolve, reject) => {
 		await fetch(getValidationEndpoint(), {
 			method: 'GET',
@@ -597,4 +597,4 @@ module.exports.getValidationEndpoint = getValidationEndpoint;
 module.exports.getRefreshEndpoint = getRefreshEndpoint;
 module.exports.getAuthorizationEndpoint = getAuthorizationEndpoint;
 module.exports.getAccessTokenByAuthTokenEndpoint = getAccessTokenByAuthTokenEndpoint;
-module.exports.validate = validate;
+module.exports.validateTwitchToken = validateTwitchToken;

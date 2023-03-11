@@ -25,7 +25,7 @@ const {
 	getScopes,
 	getAuthorizationEndpoint,
 	getAccessTokenByAuthTokenEndpoint,
-	validate
+	validateTwitchToken
 } = require('./twitchApi.js');
 
 /*
@@ -86,7 +86,7 @@ async function handleCommand(interaction) {
 		return;
 	}
 	await interaction.deferReply();
-	await validate(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens.access_token, tokens.refresh_token, false).then(async (value) => {
+	await validateTwitchToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens.access_token, tokens.refresh_token, false).then(async (value) => {
 		switch (interaction.commandName) {
 			case 'getpoll':
 				await getPollCommand(interaction);
@@ -275,7 +275,7 @@ if (!mySecret) {
 } else {
 	if (fs.existsSync('./.tokens.json')) {
 		tokens = require('./.tokens.json');
-		validate().then(() => {
+		validateTwitchToken().then(() => {
 			// Logs in with secret TOKEN
 			client.login(mySecret);
 		}).catch(() => {
