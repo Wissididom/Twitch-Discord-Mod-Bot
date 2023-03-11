@@ -177,7 +177,6 @@ async function endPollCommand(interaction) {
 	});
 }
 
-// https://dev.twitch.tv/docs/api/reference#get-prediction
 async function getPredictionCommand(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	await getPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
@@ -191,7 +190,6 @@ async function getPredictionCommand(interaction) {
 	});
 }
 
-// https://dev.twitch.tv/docs/api/reference#create-prediction
 async function createPredictionCommand(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	const title = interaction.options.getString('title');
@@ -218,7 +216,6 @@ async function createPredictionCommand(interaction) {
 	});
 }
 
-// https://dev.twitch.tv/docs/api/reference#end-prediction
 async function endPredictionCommand(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	let status = interaction.options.getString('status');
