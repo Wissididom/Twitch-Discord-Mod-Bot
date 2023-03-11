@@ -107,23 +107,23 @@ async function handleCommand(interaction) {
 		await interaction.deferReply();
 		await validate(false).then(async (value) => {
 			switch (interaction.commandName) {
+				case 'getpoll':
+					await getPolls(interaction);
+					break;
 				case 'poll':
 					await createPoll(interaction);
 					break;
 				case 'endpoll':
 					await endPoll(interaction);
 					break;
-				case 'getpoll':
-					await getPoll(interaction);
+				case 'getprediction':
+					await getPredictions(interaction);
 					break;
 				case 'prediction':
 					await createPrediction(interaction);
 					break;
 				case 'endprediction':
 					await endPrediction(interaction);
-					break;
-				case 'getprediction':
-					await getPrediction(interaction);
 					break;
 			}
 		}).catch(async (err) => {
@@ -132,6 +132,72 @@ async function handleCommand(interaction) {
 			});
 		});
 	}
+}
+
+// https://dev.twitch.tv/docs/api/reference#get-poll
+async function getPolls(interaction) {
+	const broadcasterId = await getBroadcasterId();
+	const pollId = interaction.options.getString('id');
+	await fetch(`https://api.twitch.tv/helix/polls?broadcaster_id=${broadcasterId}&id=${pollId}`, {
+		method: 'GET',
+		headers: {
+			'Client-ID': process.env.TWITCH_CLIENT_ID,
+			'Authorization': `Bearer ${tokens.access_token}`,
+			'Content-Type': 'application/json'
+		}
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				case 404:
+					await interaction.editReply({
+						content: `Not Found: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
+		let response = [];
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
+		} else {
+			let data = json.data[0];
+			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
+			response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
+			const choices = buildPollChoices(data, false);
+			response.push(`Title: ${data.title}`);
+			response.push(`Poll-ID: ${data.id}`);
+			response.push(`Broadcaster: ${data.broadcaster_name}`);
+			response.push(`Choices:\n${choices}`);
+			response.push(`Channel Points Voting ${channelPointsVoting}`);
+			response.push(`Poll Status: ${data.status}`);
+			response.push(`Poll Duration: ${data.duration} seconds`);
+			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
+		}
+		await interaction.editReply({
+			content: response.join("\n")
+		});
+	}).catch(async (err) => {
+		await interaction.editReply({
+			content: `Error getting Poll from Twitch: ${err}`
+		});
+	});
 }
 
 // https://dev.twitch.tv/docs/api/reference#create-poll
@@ -167,14 +233,35 @@ async function createPoll(interaction) {
 			channel_points_voting_enabled: channelPointsVotingEnabled,
 			channel_points_per_vote: channelPointsPerVote
 		})
-	}).then(res => res.json()).then(async res => {
-		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
-			console.log(`Error: ${JSON.stringify(res)}`);
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
+		const response = [];
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
+			console.log(`Error: ${JSON.stringify(json)}`);
 		} else {
-			const data = res.data[0];
+			const data = json.data[0];
 			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully started!\n`);
 			const choices = buildPollChoices(data, true);
@@ -216,13 +303,34 @@ async function endPoll(interaction) {
 			id: pollId,
 			status: status
 		})
-	}).then(res => res.json()).then(async res => {
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
 		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
 		} else {
-			let data = res.data[0];
+			let data = json.data[0];
 			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 			response.push(`Poll \`\`${data.title}\`\` successfully ended!`);
 			const choices = buildPollChoices(data, false);
@@ -246,42 +354,79 @@ async function endPoll(interaction) {
 	});
 }
 
-// https://dev.twitch.tv/docs/api/reference#get-poll
-async function getPoll(interaction) {
+// https://dev.twitch.tv/docs/api/reference#get-prediction
+async function getPredictions(interaction) {
 	const broadcasterId = await getBroadcasterId();
-	const pollId = interaction.options.getString('id');
-	await fetch(`https://api.twitch.tv/helix/polls?broadcaster_id=${broadcasterId}&id=${pollId}`, {
+	const predictionId = interaction.options.getString('id');
+	await fetch(`https://api.twitch.tv/helix/predictions?broadcaster_id=${broadcasterId}&id=${predictionId}`, {
 		method: 'GET',
 		headers: {
 			'Client-ID': process.env.TWITCH_CLIENT_ID,
 			'Authorization': `Bearer ${tokens.access_token}`,
 			'Content-Type': 'application/json'
 		}
-	}).then(res => res.json()).then(async res => {
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
 		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
 		} else {
-			let data = res.data[0];
-			const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
-			response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
-			const choices = buildPollChoices(data, false);
+			let data = json.data[0];
+			response.push(`Got Prediction \`\`${data.title}\`\` successfully!`);
+			let outcomes = '';
+			for (let i = 0; i < data.outcomes.length; i++) {
+				let outcome = data.outcomes[i];
+				outcomes.push(`> ${outcome.title}`);
+				outcomes.push(`> > Outcome-ID: ${outcome.id}`);
+				outcomes.push(`> > Users: ${outcome.users}`);
+				outcomes.push(`> > Channel Points: ${outcome.channel_points}`);
+				outcomes.push(`> > Color: ${outcome.color}`);
+				outcomes.push('> > Top Predictors:');
+				for (let j = 0; outcome.top_predictors && j < outcome.top_predictors.length; j++) {
+					let topPredictor = outcome.top_predictors[j].user;
+					outcomes.push(`> > > User: ${topPredictor.name} (${topPredictor.id})`);
+					outcomes.push(`> > > > Channel Points used: ${topPredictor.channel_points_used}`);
+					outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}`);
+				}
+			}
+			outcomes = outcomes.trim();
 			response.push(`Title: ${data.title}`);
-			response.push(`Poll-ID: ${data.id}`);
+			response.push(`Prediction-ID: ${data.id}`);
 			response.push(`Broadcaster: ${data.broadcaster_name}`);
-			response.push(`Choices:\n${choices}`);
-			response.push(`Channel Points Voting ${channelPointsVoting}`);
-			response.push(`Poll Status: ${data.status}`);
-			response.push(`Poll Duration: ${data.duration} seconds`);
-			response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
+			response.push(`Outcomes:\n${outcomes}`);
+			response.push(`Prediction Duration: ${data.prediction_window} seconds`);
+			response.push(`Prediction-Status: ${data.status}`);
+			response.push(`Created at ${toDiscordTimestamp(data.created_at)}`);
+			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
+			response.push(`Locked at ${toDiscordTimestamp(data.locked_at)}`);
 		}
 		await interaction.editReply({
 			content: response.join("\n")
 		});
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Error getting Poll from Twitch: ${err}`
+			content: `Error getting prediction from Twitch: ${err}`
 		});
 	});
 }
@@ -315,13 +460,39 @@ async function createPrediction(interaction) {
 			outcomes: outcomesArr,
 			prediction_window: duration * durationMultiplier
 		})
-	}).then(res => res.json()).then(async res => {
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				case 429:
+					await interaction.editReply({
+						content: `Too Many Requests: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
 		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
 		} else {
-			let data = res.data[0];
+			let data = json.data[0];
 			response.push(`Prediction \`\`${data.title}\`\` successfully started!`);
 			let outcomes = [];
 			for (let i = 0; i < data.outcomes.length; i++) {
@@ -369,13 +540,39 @@ async function endPrediction(interaction) {
 			status: status,
 			winning_outcome_id: winningOutcomeId
 		})
-	}).then(res => res.json()).then(async res => {
+	}).then(async res => {
+		const json = await res.json();
+		if (!res.ok) {
+			switch (res.status) {
+				case 400:
+					await interaction.editReply({
+						content: `Bad Request: ${json.message}`
+					});
+					break;
+				case 401:
+					await interaction.editReply({
+						content: `Unauthorized: ${json.message}`
+					});
+					break;
+				case 404:
+					await interaction.editReply({
+						content: `Not Found: ${json.message}`
+					});
+					break;
+				default:
+					await interaction.editReply({
+						content: `${json.error} (${res.status}): ${json.message}`
+					});
+					break;
+			}
+			return;
+		}
 		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
+		if (json.error) {
+			response.push(`Error: ${json.error}`);
+			response.push(`Error-Message: ${json.message}`);
 		} else {
-			let data = res.data[0];
+			let data = json.data[0];
 			response.push(`Prediction \`\`${data.title}\`\` successfully ended!`);
 			let outcomes = '';
 			for (let i = 0; i < data.outcomes.length; i++) {
@@ -410,62 +607,6 @@ async function endPrediction(interaction) {
 	}).catch(async (err) => {
 		await interaction.editReply({
 			content: `Error ending prediction on Twitch: ${err}`
-		});
-	});
-}
-
-// https://dev.twitch.tv/docs/api/reference#get-prediction
-async function getPrediction(interaction) {
-	const broadcasterId = await getBroadcasterId();
-	const predictionId = interaction.options.getString('id');
-	await fetch(`https://api.twitch.tv/helix/predictions?broadcaster_id=${broadcasterId}&id=${predictionId}`, {
-		method: 'GET',
-		headers: {
-			'Client-ID': process.env.TWITCH_CLIENT_ID,
-			'Authorization': `Bearer ${tokens.access_token}`,
-			'Content-Type': 'application/json'
-		}
-	}).then(res => res.json()).then(async res => {
-		let response = [];
-		if (res.error) {
-			response.push(`Error: ${res.error}`);
-			response.push(`Error-Message: ${res.message}`);
-		} else {
-			let data = res.data[0];
-			response.push(`Got Prediction \`\`${data.title}\`\` successfully!`);
-			let outcomes = '';
-			for (let i = 0; i < data.outcomes.length; i++) {
-				let outcome = data.outcomes[i];
-				outcomes.push(`> ${outcome.title}`);
-				outcomes.push(`> > Outcome-ID: ${outcome.id}`);
-				outcomes.push(`> > Users: ${outcome.users}`);
-				outcomes.push(`> > Channel Points: ${outcome.channel_points}`);
-				outcomes.push(`> > Color: ${outcome.color}`);
-				outcomes.push('> > Top Predictors:');
-				for (let j = 0; outcome.top_predictors && j < outcome.top_predictors.length; j++) {
-					let topPredictor = outcome.top_predictors[j].user;
-					outcomes.push(`> > > User: ${topPredictor.name} (${topPredictor.id})`);
-					outcomes.push(`> > > > Channel Points used: ${topPredictor.channel_points_used}`);
-					outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}`);
-				}
-			}
-			outcomes = outcomes.trim();
-			response.push(`Title: ${data.title}`);
-			response.push(`Prediction-ID: ${data.id}`);
-			response.push(`Broadcaster: ${data.broadcaster_name}`);
-			response.push(`Outcomes:\n${outcomes}`);
-			response.push(`Prediction Duration: ${data.prediction_window} seconds`);
-			response.push(`Prediction-Status: ${data.status}`);
-			response.push(`Created at ${toDiscordTimestamp(data.created_at)}`);
-			response.push(`Ended at ${toDiscordTimestamp(data.ended_at)}`);
-			response.push(`Locked at ${toDiscordTimestamp(data.locked_at)}`);
-		}
-		await interaction.editReply({
-			content: response.join("\n")
-		});
-	}).catch(async (err) => {
-		await interaction.editReply({
-			content: `Error getting prediction from Twitch: ${err}`
 		});
 	});
 }
