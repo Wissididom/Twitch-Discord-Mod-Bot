@@ -18,13 +18,22 @@ function getStatusResponse(res) {
 	}
 }
 
-async function getUser(login) {
-	return (await fetch(`https://api.twitch.tv/helix/users?login=${login}`, {
-		headers: {
-			'Client-ID': process.env.TWITCH_CLIENT_ID,
-			'Authorization': `Bearer ${tokens.access_token}`
-		}
-	}).then(res => res.json()).catch(err => console.error)).data[0];
+async function getUser(clientId, accessToken, login) {
+	if (login) {
+		return (await fetch(`https://api.twitch.tv/helix/users?login=${login}`, {
+			headers: {
+				'Client-ID': clientId,
+				'Authorization': `Bearer ${accessToken}`
+			}
+		}).then(res => res.json()).catch(err => console.error)).data[0];
+	} else {
+		return (await fetch(`https://api.twitch.tv/helix/users`, {
+			headers: {
+				'Client-ID': clientId,
+				'Authorization': `Bearer ${accessToken}`
+			}
+		}).then(res => res.json()).catch(err => console.error)).data[0];
+	}
 }
 
 // https://dev.twitch.tv/docs/api/reference#get-polls

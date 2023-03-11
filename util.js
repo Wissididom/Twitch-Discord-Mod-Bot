@@ -10,8 +10,8 @@ function getChannelNotAllowedError(channel) {
 	return `<#${channel.id}> (${channel.name}) is not allowed to accept commands!`;
 }
 
-async function getBroadcaster() {
-	return getUser(process.env.BROADCASTER_LOGIN);
+async function getBroadcaster(clientId, accessToken) {
+	return getUser(clientId, accessToken);
 }
 
 async function getBroadcasterId() {
