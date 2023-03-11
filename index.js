@@ -33,7 +33,7 @@ const {
 	getAuthorizationEndpoint,
 	getAccessTokenByAuthTokenEndpoint,
 	validate
-}
+} = require('./twitchApi.js');
 
 /*
 OBJECTS, TOKENS, GLOBAL VARIABLES
@@ -170,7 +170,7 @@ async function endPollCommand(interaction) {
 			await interaction.editReply({
 				content: res
 			});
-		}).catch(err => {
+		}).catch(async err => {
 			await interaction.editReply({
 				content: `Error ending Poll on Twitch: ${err}`
 			});
@@ -189,7 +189,7 @@ async function getPredictionCommand(interaction) {
 		await interaction.editReply({
 			content: res
 		});
-	}).catch(err => {
+	}).catch(async err => {
 		await interaction.editReply({
 			content: `Error getting prediction from Twitch: ${err}`
 		});
@@ -197,7 +197,7 @@ async function getPredictionCommand(interaction) {
 }
 
 // https://dev.twitch.tv/docs/api/reference#create-prediction
-async function createPrediction(interaction) {
+async function createPredictionCommand(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	const title = interaction.options.getString('title');
 	const outcomesStr = interaction.options.getString('outcomes').split(';');
@@ -216,7 +216,7 @@ async function createPrediction(interaction) {
 		await interaction.editReply({
 			content: res
 		});
-	}).catch(err => {
+	}).catch(async err => {
 		await interaction.editReply({
 			content: `Error creating prediction on Twitch: ${err}`
 		});
@@ -224,7 +224,7 @@ async function createPrediction(interaction) {
 }
 
 // https://dev.twitch.tv/docs/api/reference#end-prediction
-async function endPrediction(interaction) {
+async function endPredictionCommand(interaction) {
 	const broadcasterId = await getBroadcasterId();
 	let status = interaction.options.getString('status');
 	if (status.includes(' ')) // There shouldn't be a space in the value but better safe than sorry
@@ -235,7 +235,7 @@ async function endPrediction(interaction) {
 			await interaction.editReply({
 				content: res
 			});
-		}).catch(err => {
+		}).catch(async err => {
 			await interaction.editReply({
 				content: `Error ending Prediction on Twitch: ${err}`
 			});
