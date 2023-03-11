@@ -1,8 +1,4 @@
 const {
-	//getNoAllowedChannelIdError,
-	//getChannelNotAllowedError,
-	//getBroadcaster,
-	//getBroadcasterId,
 	buildPollChoices,
 	toDiscordTimestamp
 } = require('./util.js');

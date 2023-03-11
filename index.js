@@ -10,15 +10,10 @@ const fs = require('fs');
 
 const {
 	getNoAllowedChannelIdError,
-	getChannelNotAllowedError,
-	//getBroadcaster,
-	//getBroadcasterId,
-	//buildPollChoices,
-	//toDiscordTimestamp
+	getChannelNotAllowedError
 } = require('./util.js');
 
 const {
-	//getUser,
 	getPoll,
 	getPollId,
 	createPoll,
@@ -28,8 +23,6 @@ const {
 	createPrediction,
 	endPrediction,
 	getScopes,
-	//getValidationEndpoint,
-	//getRefreshEndpoint,
 	getAuthorizationEndpoint,
 	getAccessTokenByAuthTokenEndpoint,
 	validate
