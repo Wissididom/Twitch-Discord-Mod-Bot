@@ -1,3 +1,7 @@
+const {
+	getUser
+} = require('./twitchApi.js');
+
 function getNoAllowedChannelIdError(channel) {
 	return `Please first set a channel where you want to accept the commands! For <#${channel.id}> (${channel.name}) just set the value for \`ALLOWED_CHANNEL_ID\` to \`${channel.id}\` in the .env file!`;
 }
@@ -7,12 +11,7 @@ function getChannelNotAllowedError(channel) {
 }
 
 async function getBroadcaster() {
-	return (await fetch(`https://api.twitch.tv/helix/users?login=${process.env.BROADCASTER_LOGIN}`, {
-		headers: {
-			'Client-ID': process.env.TWITCH_CLIENT_ID,
-			'Authorization': `Bearer ${tokens.access_token}`
-		}
-	}).then(res => res.json()).catch(err => console.error)).data[0];
+	return getUser(process.env.BROADCASTER_LOGIN);
 }
 
 async function getBroadcasterId() {

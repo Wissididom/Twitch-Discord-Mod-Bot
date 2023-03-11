@@ -51,6 +51,10 @@ async function getPoll(clientId, accessToken, broadcasterId) {
 				response.push(`Error: ${json.error}`);
 				response.push(`Error-Message: ${json.message}`);
 			} else {
+				if (json.data.length < 1) {
+					resolve('No Poll found');
+					return;
+				}
 				let data = json.data[0];
 				const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 				response.push(`Got Poll \`\`${data.title}\`\` successfully!`);
@@ -65,6 +69,51 @@ async function getPoll(clientId, accessToken, broadcasterId) {
 				response.push(`Started at ${toDiscordTimestamp(data.started_at)}`);
 			}
 			resolve(response.join("\n"));
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+// https://dev.twitch.tv/docs/api/reference#get-polls
+async function getPollId(clientId, accessToken, broadcasterId) {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const res = await fetch(`https://api.twitch.tv/helix/polls?broadcaster_id=${broadcasterId}`, {
+				method: 'GET',
+				headers: {
+					'Client-ID': clientId,
+					'Authorization': `Bearer ${accessToken}`,
+					'Content-Type': 'application/json'
+				}
+			});
+			const json = await res.json();
+			if (!res.ok) {
+				switch (res.status) {
+					case 400:
+						reject(`Bad Request: ${json.message}`);
+						break;
+					case 401:
+						reject(`Unauthorized: ${json.message}`);
+						break;
+					case 404:
+						reject(`Not Found: ${json.message}`);
+						break;
+					default:
+						reject(`${json.error} (${res.status}): ${json.message}`);
+						break;
+				}
+				return;
+			}
+			if (json.error) {
+				reject(`Error: ${json.error}; Error-Message: ${json.message}`);
+			} else {
+				if (json.data.length < 1) {
+					reject('No Poll found');
+					return;
+				}
+				resolve(json.data[0].id);
+			}
 		} catch (e) {
 			reject(e);
 		}
@@ -112,6 +161,10 @@ async function createPoll(clientId, accessToken, broadcasterId, title, choices, 
 				response.push(`Error-Message: ${json.message}`);
 				console.log(`Error: ${JSON.stringify(json)}`);
 			} else {
+				if (json.data.length < 1) {
+					resolve('No Poll created');
+					return;
+				}
 				const data = json.data[0];
 				const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 				response.push(`Poll \`\`${data.title}\`\` successfully started!\n`);
@@ -169,6 +222,10 @@ async function endPoll(clientId, accessToken, broadcasterId, pollId, status) {
 				response.push(`Error: ${json.error}`);
 				response.push(`Error-Message: ${json.message}`);
 			} else {
+				if (json.data.length < 1) {
+					resolve('Poll not found');
+					return;
+				}
 				let data = json.data[0];
 				const channelPointsVoting = data.channel_points_voting_enabled ? 'enabled' : 'disabled';
 				response.push(`Poll \`\`${data.title}\`\` successfully ended!`);
@@ -222,6 +279,10 @@ async function getPrediction(clientId, accessToken, broadcasterId) {
 				response.push(`Error: ${json.error}`);
 				response.push(`Error-Message: ${json.message}`);
 			} else {
+				if (json.data.length < 1) {
+					resolve('No Prediction found');
+					return;
+				}
 				let data = json.data[0];
 				response.push(`Got Prediction \`\`${data.title}\`\` successfully!`);
 				let outcomes = '';
@@ -252,6 +313,48 @@ async function getPrediction(clientId, accessToken, broadcasterId) {
 				response.push(`Locked at ${toDiscordTimestamp(data.locked_at)}`);
 			}
 			resolve(response.join("\n"));
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+// https://dev.twitch.tv/docs/api/reference#get-predictions
+async function getPredictionId(clientId, accessToken, broadcasterId) {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const res = await fetch(`https://api.twitch.tv/helix/predictions?broadcaster_id=${broadcasterId}`, {
+				method: 'GET',
+				headers: {
+					'Client-ID': clientId,
+					'Authorization': `Bearer ${accessToken}`,
+					'Content-Type': 'application/json'
+				}
+			});
+			const json = await res.json();
+			if (!res.ok) {
+				switch (res.status) {
+					case 400:
+						reject(`Bad Request: ${json.message}`);
+						break;
+					case 401:
+						reject(`Unauthorized: ${json.message}`);
+						break;
+					default:
+						reject(`${json.error} (${res.status}): ${json.message}`);
+						break;
+				}
+				return;
+			}
+			if (json.error) {
+				reject(`Error: ${json.error}; Error-Message: ${json.message}`);
+			} else {
+				if (json.data.length < 1) {
+					reject('No Prediction found');
+					return;
+				}
+				resolve(json.data[0].id);
+			}
 		} catch (e) {
 			reject(e);
 		}
@@ -486,9 +589,11 @@ function validate(clientId, clientSecret, accessToken, refreshToken, openBrowser
 
 module.exports.getUser = getUser;
 module.exports.getPoll = getPoll;
+module.exports.getPollId = getPollId;
 module.exports.createPoll = createPoll;
 module.exports.endPoll = endPoll;
 module.exports.getPrediction = getPrediction;
+module.exports.getPredictionId = getPredictionId;
 module.exports.createPrediction = createPrediction;
 module.exports.endPrediction = endPrediction;
 module.exports.getScopes = getScopes;
