@@ -117,7 +117,7 @@ client.on("ready", () => {
 			},
 			{
 				name: 'outcomes',
-				description: 'List of the outcomes (separated by comma, first is blue, second is pink).',
+				description: 'List of the outcomes (separated by semicolon, first is blue, second is pink).',
 				type: ApplicationCommandOptionType.String,
 				required: true
 			},
