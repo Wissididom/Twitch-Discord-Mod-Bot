@@ -10,11 +10,11 @@ const fs = require('fs');
 
 const {
 	getNoAllowedChannelIdError,
-	getChannelNotAllowedError,
-	getBroadcasterId
+	getChannelNotAllowedError
 } = require('./util.js');
 
-const {
+const {,
+	getBroadcasterId,
 	getPoll,
 	getPollId,
 	createPoll,

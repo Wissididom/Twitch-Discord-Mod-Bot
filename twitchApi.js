@@ -38,6 +38,16 @@ async function getUser(clientId, accessToken, login) {
 	}
 }
 
+
+
+async function getBroadcaster(clientId, accessToken) {
+	return getUser(clientId, accessToken);
+}
+
+async function getBroadcasterId(clientId, accessToken) {
+	return (await getBroadcaster(clientId, accessToken)).id;
+}
+
 // https://dev.twitch.tv/docs/api/reference#get-polls
 async function getPoll(clientId, accessToken, broadcasterId) {
 	return new Promise(async (resolve, reject) => {
@@ -518,6 +528,8 @@ function validateTwitchToken(clientId, clientSecret, accessToken, refreshToken, 
 }
 
 module.exports.getUser = getUser;
+module.exports.getBroadcaster = getBroadcaster;
+module.exports.getBroadcasterId = getBroadcasterId;
 module.exports.getPoll = getPoll;
 module.exports.getPollId = getPollId;
 module.exports.createPoll = createPoll;

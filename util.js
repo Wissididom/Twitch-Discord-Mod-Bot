@@ -1,21 +1,9 @@
-const {
-	getUser
-} = require('./twitchApi.js');
-
 function getNoAllowedChannelIdError(channel) {
 	return `Please first set a channel where you want to accept the commands! For <#${channel.id}> (${channel.name}) just set the value for \`ALLOWED_CHANNEL_ID\` to \`${channel.id}\` in the .env file!`;
 }
 
 function getChannelNotAllowedError(channel) {
 	return `<#${channel.id}> (${channel.name}) is not allowed to accept commands!`;
-}
-
-async function getBroadcaster(clientId, accessToken) {
-	return getUser(clientId, accessToken);
-}
-
-async function getBroadcasterId(clientId, accessToken) {
-	return (await getBroadcaster(clientId, accessToken)).id;
 }
 
 function buildPollChoices(data, create) {
@@ -41,7 +29,5 @@ function toDiscordTimestamp(twitchTime) {
 
 module.exports.getNoAllowedChannelIdError = getNoAllowedChannelIdError;
 module.exports.getChannelNotAllowedError = getChannelNotAllowedError;
-module.exports.getBroadcaster = getBroadcaster;
-module.exports.getBroadcasterId = getBroadcasterId;
 module.exports.buildPollChoices = buildPollChoices;
 module.exports.toDiscordTimestamp = toDiscordTimestamp;
