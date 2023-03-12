@@ -10,7 +10,8 @@ const fs = require('fs');
 
 const {
 	getNoAllowedChannelIdError,
-	getChannelNotAllowedError
+	getChannelNotAllowedError,
+	getBroadcasterId
 } = require('./util.js');
 
 const {
