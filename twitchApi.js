@@ -34,7 +34,7 @@ async function getUser(clientId, accessToken, login) {
 				'Client-ID': clientId,
 				'Authorization': `Bearer ${accessToken}`
 			}
-		}).then(res => res.json()).catch(err => console.error)).data[0];
+		}).then(res => res.json()).then(res => console.log(JSON.stringify(res))).catch(err => console.error)).data[0];
 	}
 }
 
