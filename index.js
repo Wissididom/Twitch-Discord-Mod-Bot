@@ -112,6 +112,7 @@ async function handleCommand(interaction) {
 		await interaction.editReply({
 			content: `Token validation failed! (${err})`
 		});
+		console.trace(err);
 	});
 }
 
