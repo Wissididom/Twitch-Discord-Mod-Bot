@@ -261,7 +261,7 @@ async function getPrediction(clientId, accessToken, broadcasterId) {
 				}
 				let data = json.data[0];
 				response.push(`Got Prediction \`\`${data.title}\`\` successfully!`);
-				let outcomes = '';
+				let outcomes = [];
 				for (let i = 0; i < data.outcomes.length; i++) {
 					let outcome = data.outcomes[i];
 					outcomes.push(`> ${outcome.title}`);
@@ -277,7 +277,7 @@ async function getPrediction(clientId, accessToken, broadcasterId) {
 						outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}`);
 					}
 				}
-				outcomes = outcomes.trim();
+				outcomes = outcomes.join("\n").trim();
 				response.push(`Title: ${data.title}`);
 				response.push(`Prediction-ID: ${data.id}`);
 				response.push(`Broadcaster: ${data.broadcaster_name}`);
@@ -387,7 +387,7 @@ async function endPrediction(clientId, accessToken, broadcasterId, predictionId,
 				method: 'PATCH',
 				headers: {
 					'Client-ID': process.env.TWITCH_CLIENT_ID,
-					'Authorization': `Bearer ${tokens.access_token}`,
+					'Authorization': `Bearer ${accessToken}`,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
@@ -409,7 +409,7 @@ async function endPrediction(clientId, accessToken, broadcasterId, predictionId,
 			} else {
 				let data = json.data[0];
 				response.push(`Prediction \`\`${data.title}\`\` successfully ended!`);
-				let outcomes = '';
+				let outcomes = [];
 				for (let i = 0; i < data.outcomes.length; i++) {
 					let outcome = data.outcomes[i];
 					outcomes.push(`> ${outcome.title}`);
@@ -425,7 +425,7 @@ async function endPrediction(clientId, accessToken, broadcasterId, predictionId,
 						outcomes.push(`> > > > Channel Points won: ${topPredictor.channel_points_won}\n`);
 					}
 				}
-				outcomes = outcomes.trim();
+				outcomes = outcomes.join("\n").trim();
 				response.push(`Title: ${data.title}`);
 				response.push(`Prediction-ID: ${data.id}`);
 				response.push(`Broadcaster: ${data.broadcaster_name}`);
