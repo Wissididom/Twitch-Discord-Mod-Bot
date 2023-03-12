@@ -13,7 +13,7 @@ const {
 	getChannelNotAllowedError
 } = require('./util.js');
 
-const {,
+const {
 	getBroadcasterId,
 	getPoll,
 	getPollId,
