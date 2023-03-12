@@ -117,7 +117,7 @@ async function handleCommand(interaction) {
 }
 
 async function getPollCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	await getPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
 		await interaction.editReply({
 			content: res
@@ -130,7 +130,7 @@ async function getPollCommand(interaction) {
 }
 
 async function createPollCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	const title = interaction.options.getString('title');
 	const choicesStr = interaction.options.getString('choices').split(';');
 	let choicesArr = [];
@@ -158,7 +158,7 @@ async function createPollCommand(interaction) {
 }
 
 async function endPollCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	let status = interaction.options.getString('status');
 	if (status.includes(' ')) // There shouldn't be a space in the value but better safe than sorry
 		status = status.substring(0, status.indexOf(' ')).trim();
@@ -180,7 +180,7 @@ async function endPollCommand(interaction) {
 }
 
 async function getPredictionCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	await getPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
 		await interaction.editReply({
 			content: res
@@ -193,7 +193,7 @@ async function getPredictionCommand(interaction) {
 }
 
 async function createPredictionCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	const title = interaction.options.getString('title');
 	const outcomesStr = interaction.options.getString('outcomes').split(';');
 	let outcomesArr = [];
@@ -219,7 +219,7 @@ async function createPredictionCommand(interaction) {
 }
 
 async function endPredictionCommand(interaction) {
-	const broadcasterId = await getBroadcasterId();
+	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	let status = interaction.options.getString('status');
 	if (status.includes(' ')) // There shouldn't be a space in the value but better safe than sorry
 		status = status.substring(0, status.indexOf(' ')).trim();

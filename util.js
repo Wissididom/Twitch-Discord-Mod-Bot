@@ -14,8 +14,8 @@ async function getBroadcaster(clientId, accessToken) {
 	return getUser(clientId, accessToken);
 }
 
-async function getBroadcasterId() {
-	return (await getBroadcaster()).id;
+async function getBroadcasterId(clientId, accessToken) {
+	return (await getBroadcaster(clientId, accessToken)).id;
 }
 
 function buildPollChoices(data, create) {
