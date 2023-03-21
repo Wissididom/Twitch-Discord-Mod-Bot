@@ -471,22 +471,22 @@ function getAccessTokenByAuthTokenEndpoint(clientId, clientSecret, code, redirec
 	return `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(redirectUri)}%3A${port}`;
 }
 
-function validateTwitchToken(clientId, clientSecret, accessToken, refreshToken, redirectUri, openBrowser = true) {
+function validateTwitchToken(clientId, clientSecret, tokens, redirectUri, port, openBrowser = true) {
 	return new Promise(async (resolve, reject) => {
 		await fetch(getValidationEndpoint(), {
 			method: 'GET',
 			headers: {
-				'Authorization': `Bearer ${accessToken}`
+				'Authorization': `Bearer ${tokens.access_token}`
 			}
 		}).then(res => res.json()).then(async res => {
 			if (res.status) {
 				if (res.status == 401) {
 					console.log('Trying to refresh with the refresh token');
-					await fetch(getRefreshEndpoint(clientId, clientSecret, refreshToken), {
+					await fetch(getRefreshEndpoint(clientId, clientSecret, tokens.refresh_token), {
 						method: 'POST',
 						headers: {
 							'Client-ID': clientId,
-							'Authorization': `Bearer ${accessToken}`
+							'Authorization': `Bearer ${tokens.access_token}`
 						}
 					}).then(res => res.json()).then(res => {
 						if (res.status) {
