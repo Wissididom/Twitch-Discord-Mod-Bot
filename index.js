@@ -7,6 +7,7 @@ import {
 } from 'discord.js';
 import express from 'express';
 import * as fs from 'node:fs';
+import open, {openApp, apps} from 'open';
 
 import {
 	getNoAllowedChannelIdError,
