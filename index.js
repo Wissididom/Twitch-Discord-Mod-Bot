@@ -261,7 +261,7 @@ server.listen(parseInt(process.env.LOCAL_SERVER_PORT), () => {
 	console.log('Express Server ready!');
 	if (!fs.existsSync('./.tokens.json')) {
 		console.log(`Open the following Website to authenticate: ${getAuthorizationEndpoint(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, 'http://localhost', process.env.LOCAL_SERVER_PORT, getScopes())}`);
-		require('open')(getAuthorizationEndpoint(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, 'http://localhost', process.env.LOCAL_SERVER_PORT, getScopes()));
+		open(getAuthorizationEndpoint(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, 'http://localhost', process.env.LOCAL_SERVER_PORT, getScopes()));
 	}
 });
 if (!mySecret) {
