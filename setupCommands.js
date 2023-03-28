@@ -223,9 +223,9 @@ client.on("ready", () => {
 				nameLocalizations: {
 					de: 'ergebnisse'
 				},
-				description: 'List of the outcomes (separated by semicolon, first is blue, second is pink)',
+				description: 'List of the outcomes (separated by semicolon)',
 				descriptionLocalizations: {
-					de: 'Liste der möglichen Ergebnisse (getrennt durch Strichpunkte/Semikolon, erste ist blau, zweite ist rosa)'
+					de: 'Liste der möglichen Ergebnisse (getrennt durch Strichpunkte/Semikolon)'
 				},
 				type: ApplicationCommandOptionType.String,
 				required: true
