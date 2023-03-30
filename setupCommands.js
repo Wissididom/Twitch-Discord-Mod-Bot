@@ -56,11 +56,11 @@ client.on("ready", () => {
 			{
 				name: 'title',
 				nameLocalizations: {
-					de: 'titel'
+					de: 'Frage'
 				},
 				description: 'Title displayed in the poll',
 				descriptionLocalizations: {
-					de: 'Der Titel, der in der Umfrage angezeigt werden sollte'
+					de: 'Der Titel, der in der Umfrage angezeigt werden soll'
 				},
 				type: ApplicationCommandOptionType.String,
 				required: true
@@ -156,9 +156,9 @@ client.on("ready", () => {
 		options: [
 			{
 				name: 'status',
-				/*nameLocalizations: {
+				nameLocalizations: {
 					de: 'status'
-				},*/
+				},
 				description: 'The poll status to be set',
 				descriptionLocalizations: {
 					de: 'Der Status, auf den die Umfrage gesetzt werden soll'
@@ -176,7 +176,7 @@ client.on("ready", () => {
 					{
 						name: 'Archived (End the poll manually and do not allow it to be viewed publicly)',
 						nameLocalizations: {
-							de: 'Archiviert (Umfrage manuell beenden, aber nicht öffentlich sichtbar lassen)'
+							de: 'Archiviert (Umfrage manuell beenden und auf privat stellen)'
 						},
 						value: 'ARCHIVED'
 					}
@@ -247,7 +247,7 @@ client.on("ready", () => {
 				nameLocalizations: {
 					de: 'einheit'
 				},
-				description: 'Which unit to use for duration.',
+				description: 'Which unit to use for duration',
 				descriptionLocalizations: {
 					de: 'Welche Einheit soll für die Dauer genutzt werden'
 				},
@@ -277,7 +277,7 @@ client.on("ready", () => {
 		nameLocalizations: {
 			de: 'vorhersagebeeenden'
 		},
-		description: 'Lock, resolve, or cancel a prediction.',
+		description: 'Lock, resolve, or cancel a prediction',
 		descriptionLocalizations: {
 			de: 'Eine Vorhersage sperren, auflösen oder abbrechen'
 		},
@@ -312,7 +312,7 @@ client.on("ready", () => {
 					{
 						name: 'Locked (The prediction has been locked and viewers can no longer make predictions)',
 						nameLocalizations: {
-							de: 'Gesperrt (Die Vorhersage wurde gesperrt und die Zuschauer können nicht mehr länger vorhersagen)'
+							de: 'Gesperrt (Die Vorhersage wurde gesperrt und Zuschauer können nicht länger vorhersagen)'
 						},
 						value: 'LOCKED'
 					}
@@ -323,9 +323,9 @@ client.on("ready", () => {
 				nameLocalizations: {
 					de: 'gewinnendes_ergebnis_id'
 				},
-				description: 'ID of the winning outcome for the Prediction (Required if status is "Resolved")',
+				description: 'ID of the winning outcome for the prediction (Required if status is "Resolved")',
 				descriptionLocalizations: {
-					de: 'Id des Ergebnisses, welches die Vorhersage gewinnen soll (Erforderlich, wenn status "Aufgelöst" ist)'
+					de: 'ID des Ergebnisses, welches die Vorhersage gewinnen soll (Erforderlich, wenn status "Aufgelöst" ist)'
 				},
 				type: ApplicationCommandOptionType.String,
 				required: false
