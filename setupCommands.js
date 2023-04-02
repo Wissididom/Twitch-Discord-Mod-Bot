@@ -56,7 +56,7 @@ client.on("ready", () => {
 			{
 				name: 'title',
 				nameLocalizations: {
-					de: 'Frage'
+					de: 'frage'
 				},
 				description: 'Title displayed in the poll',
 				descriptionLocalizations: {
