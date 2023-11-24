@@ -10,11 +10,6 @@ import * as fs from 'node:fs';
 import open, {openApp, apps} from 'open';
 
 import {
-	getNoAllowedChannelIdError,
-	getChannelNotAllowedError
-} from './util.js';
-
-import {
 	getBroadcasterId,
 	getPoll,
 	getPollId,
@@ -75,16 +70,18 @@ client.on("interactionCreate", async interaction => {
 });
 
 async function handleCommand(interaction) {
+	console.log(`Locale:${interaction.locale}`); // TODO: Use this to respond in different languages
+	const strings = JSON.parse(fs.readFileSync(`languages/${locale}.json`));
 	if (!process.env.ALLOWED_CHANNEL_ID) {
 		await interaction.reply({
-			content: getNoAllowedChannelIdError(interaction.channel),
+			content: strings['no-allowed-channel-id-error'].replace('<channel-id>', interaction.channel.id).replace('<channel-name>', interaction.channel.name),
 			ephemeral: process.env.EPHEMERAL == 'true'
 		});
 		return;
 	}
 	if (interaction.channel.id != process.env.ALLOWED_CHANNEL_ID) {
 		await interaction.reply({
-			content: getChannelNotAllowedError(interaction.channel),
+			content: strings['channel-not-allowed-error'].replace('<channel-id>', interaction.channel.id).replace('<channel-name>', interaction.channel.name),
 			ephemeral: process.env.EPHEMERAL == 'true'
 		});
 		return;
@@ -93,46 +90,46 @@ async function handleCommand(interaction) {
 	await validateTwitchToken(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET, tokens, 'http://localhost', process.env.LOCAL_SERVER_PORT, false).then(async (/*value*/) => {
 		switch (interaction.commandName) {
 			case 'getpoll':
-				await getPollCommand(interaction);
+				await getPollCommand(interaction, strings);
 				break;
 			case 'poll':
-				await createPollCommand(interaction);
+				await createPollCommand(interaction, strings);
 				break;
 			case 'endpoll':
-				await endPollCommand(interaction);
+				await endPollCommand(interaction, strings);
 				break;
 			case 'getprediction':
-				await getPredictionCommand(interaction);
+				await getPredictionCommand(interaction, strings);
 				break;
 			case 'prediction':
-				await createPredictionCommand(interaction);
+				await createPredictionCommand(interaction, strings);
 				break;
 			case 'endprediction':
-				await endPredictionCommand(interaction);
+				await endPredictionCommand(interaction, strings);
 				break;
 		}
 	}).catch(async (err) => {
 		await interaction.editReply({
-			content: `Token validation failed! (${err})`
+			content: `${strings['token-validation-failed']} (${err})`
 		});
 		console.trace(err);
 	});
 }
 
-async function getPollCommand(interaction) {
+async function getPollCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
-	await getPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
+	await getPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, strings).then(async res => {
 		await interaction.editReply({
 			content: res
 		});
 	}).catch(async err => {
 		await interaction.editReply({
-			content: `Error getting Poll from Twitch: ${err}`
+			content: err
 		});
 	});
 }
 
-async function createPollCommand(interaction) {
+async function createPollCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	const title = interaction.options.getString('title');
 	const choicesStr = interaction.options.getString('choices').split(';');
@@ -149,24 +146,24 @@ async function createPollCommand(interaction) {
 		durationMultiplier = 60;
 	const cpve = interaction.options.getBoolean('channelpoints'); // Channel Points Voting Enabled
 	const cppv = interaction.options.getBoolean('cpnumber'); // Channel Points Per Vote
-	await createPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, title, choicesArr, duration * durationMultiplier, cpve, cppv).then(async res => {
+	await createPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, title, choicesArr, duration * durationMultiplier, cpve, cppv, strings).then(async res => {
 		await interaction.editReply({
 			content: res
 		});
 	}).catch(async err => {
 		await interaction.editReply({
-			content: `Error getting Poll from Twitch: ${err}`
+			content: err
 		});
 	});
 }
 
-async function endPollCommand(interaction) {
+async function endPollCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	let status = interaction.options.getString('status');
 	if (status.includes(' ')) // There shouldn't be a space in the value but better safe than sorry
 		status = status.substring(0, status.indexOf(' ')).trim();
-	await getPollId(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
-		await endPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, res, status).then(async res => {
+	await getPollId(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, strings).then(async res => {
+		await endPoll(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, res, status, strings).then(async res => {
 			await interaction.editReply({
 				content: res
 			});
@@ -182,9 +179,9 @@ async function endPollCommand(interaction) {
 	});
 }
 
-async function getPredictionCommand(interaction) {
+async function getPredictionCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
-	await getPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
+	await getPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, strings).then(async res => {
 		await interaction.editReply({
 			content: res
 		});
@@ -195,7 +192,7 @@ async function getPredictionCommand(interaction) {
 	});
 }
 
-async function createPredictionCommand(interaction) {
+async function createPredictionCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	const title = interaction.options.getString('title');
 	const outcomesStr = interaction.options.getString('outcomes').split(';');
@@ -210,7 +207,7 @@ async function createPredictionCommand(interaction) {
 	let durationMulitplier = 1;
 	if (unit.toLowerCase() == 'minutes')
 		durationMultiplier = 60;
-	await createPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, title, outcomesArr, duration * durationMultiplier).then(async res => {
+	await createPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, title, outcomesArr, duration * durationMultiplier, strings).then(async res => {
 		await interaction.editReply({
 			content: res
 		});
@@ -221,14 +218,14 @@ async function createPredictionCommand(interaction) {
 	});
 }
 
-async function endPredictionCommand(interaction) {
+async function endPredictionCommand(interaction, strings) {
 	const broadcasterId = await getBroadcasterId(process.env.TWITCH_CLIENT_ID, tokens.access_token);
 	let status = interaction.options.getString('status');
 	if (status.includes(' ')) // There shouldn't be a space in the value but better safe than sorry
 		status = status.substring(0, status.indexOf(' ')).trim();
 	const winningOutcomeId = interaction.options.getString('winning_outcome_id') ?? undefined;
-	await getPredictionId(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId).then(async res => {
-		await endPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, res, status, winningOutcomeId).then(async res => {
+	await getPredictionId(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, strings).then(async res => {
+		await endPrediction(process.env.TWITCH_CLIENT_ID, tokens.access_token, broadcasterId, res, status, winningOutcomeId, strings).then(async res => {
 			await interaction.editReply({
 				content: res
 			});
