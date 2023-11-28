@@ -70,7 +70,6 @@ client.on("interactionCreate", async interaction => {
 });
 
 async function handleCommand(interaction) {
-	console.log(`Locale:${interaction.locale}`); // TODO: Use this to respond in different languages
 	const strings = fs.existsSync(`languages/${locale}.json`) ? JSON.parse(fs.readFileSync(`languages/${locale}.json`)) : JSON.parse(fs.readFileSync('languages/en-US.json'));
 	if (!process.env.ALLOWED_CHANNEL_ID) {
 		await interaction.reply({
