@@ -1,62 +1,61 @@
 {
-    "token-validation-failed": "Token validation failed!",
-    "error": "Error",
-    "error-msg": "Error-Message",
-    "enabled": "enabled",
-    "disabled": "disabled",
-    "no-allowed-channel-id-error": "Please first set a channel where you want to accept the commands! For <#<channel-id>> (<channel-name>) just set the value for `ALLOWED_CHANNEL_ID` to `<channel-id>` in the .env file!",
-    "channel-not-allowed-error": "<#<channel-id>> (<channel-name>) is not allowed to accept commands!",
-    "util": {
+  "token-validation-failed": "Token validation failed!",
+  "error": "Error",
+  "error-msg": "Error-Message",
+  "enabled": "enabled",
+  "disabled": "disabled",
+  "no-allowed-channel-id-error": "Please first set a channel where you want to accept the commands! For <#<channel-id>> (<channel-name>) just set the value for `ALLOWED_CHANNEL_ID` to `<channel-id>` in the .env file!",
+  "channel-not-allowed-error": "<#<channel-id>> (<channel-name>) is not allowed to accept commands!",
+  "util": {},
+  "poll": {
+    "choice": {
+      "title": "Choice-Title",
+      "id": "Choice-ID",
+      "votes": "Votes",
+      "channel-point-votes": "Channel Point Votes"
     },
-    "poll": {
-        "choice": {
-            "title": "Choice-Title",
-            "id": "Choice-ID",
-            "votes": "Votes",
-            "channel-point-votes": "Channel Point Votes"
-        },
-        "notfound": "No Poll found",
-        "got": "Got Poll ``<title>`` successfully!",
-        "title": "Title",
-        "id": "Poll-ID",
-        "broadcaster": "Broadcaster",
-        "choices": "Choices",
-        "channel-points-voting": "Channel Points Voting <channelPointsVoting>",
-        "status": "Poll Status",
-        "duration": "Poll Duration",
-        "started-at": "Started at <startedAt>",
-        "ended-at": "Ended at <endedAt>",
-        "notcreated": "No poll created!",
-        "created": "Poll ``<title>`` successfully started!",
-        "ended": "Poll ``<title>`` successfully ended!"
+    "notfound": "No Poll found",
+    "got": "Got Poll ``<title>`` successfully!",
+    "title": "Title",
+    "id": "Poll-ID",
+    "broadcaster": "Broadcaster",
+    "choices": "Choices",
+    "channel-points-voting": "Channel Points Voting <channelPointsVoting>",
+    "status": "Poll Status",
+    "duration": "Poll Duration",
+    "started-at": "Started at <startedAt>",
+    "ended-at": "Ended at <endedAt>",
+    "notcreated": "No poll created!",
+    "created": "Poll ``<title>`` successfully started!",
+    "ended": "Poll ``<title>`` successfully ended!"
+  },
+  "prediction": {
+    "notfound": "No Prediction found",
+    "got": "Got Prediction ``<title>`` successfully!",
+    "title": "Title",
+    "id": "Prediction-ID",
+    "broadcaster": "Broadcaster",
+    "outcomes": "Outcomes",
+    "outcome": {
+      "title": "Title",
+      "id": "Outcome-ID",
+      "users": "Users",
+      "channel-points": "Channel Points",
+      "color": "Color",
+      "top-predictors": "Top Predictors",
+      "top-predictor": {
+        "user": "User",
+        "channel-points-used": "Channel Points used",
+        "channel-points-won": "Channel Points won"
+      }
     },
-    "prediction": {
-        "notfound": "No Prediction found",
-        "got": "Got Prediction ``<title>`` successfully!",
-        "title": "Title",
-        "id": "Prediction-ID",
-        "broadcaster": "Broadcaster",
-        "outcomes": "Outcomes",
-        "outcome": {
-            "title": "Title",
-            "id": "Outcome-ID",
-            "users": "Users",
-            "channel-points": "Channel Points",
-            "color": "Color",
-            "top-predictors": "Top Predictors",
-            "top-predictor": {
-                "user": "User",
-                "channel-points-used": "Channel Points used",
-                "channel-points-won": "Channel Points won"
-            }
-        },
-        "prediction-window": "Prediction Window",
-        "status": "Prediction Status",
-        "created-at": "Started at <startedAt>",
-        "ended-at": "Ended at <endedAt>",
-        "locked-at": "Locked at <lockedAt>",
-        "notcreated": "No prediction created!",
-        "started": "Prediction ``<title>`` successfully started!",
-        "ended": "Prediction ``<title>`` successfully ended!"
-    }
+    "prediction-window": "Prediction Window",
+    "status": "Prediction Status",
+    "created-at": "Started at <startedAt>",
+    "ended-at": "Ended at <endedAt>",
+    "locked-at": "Locked at <lockedAt>",
+    "notcreated": "No prediction created!",
+    "started": "Prediction ``<title>`` successfully started!",
+    "ended": "Prediction ``<title>`` successfully ended!"
+  }
 }
