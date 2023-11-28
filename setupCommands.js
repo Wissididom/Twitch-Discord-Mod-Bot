@@ -301,8 +301,8 @@ client.on("ready", () => {
         {
           name: "status",
           /*nameLocalizations: {
-					de: 'status'
-				},*/
+            de: 'status'
+          },*/
           description: "The prediction status to be set",
           descriptionLocalizations: {
             de: "Der Status, auf den die Vorhersage gesetzt werden soll",
