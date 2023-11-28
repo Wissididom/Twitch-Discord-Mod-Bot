@@ -388,7 +388,7 @@ server.listen(parseInt(process.env.LOCAL_SERVER_PORT), () => {
 });
 if (!mySecret) {
   console.log(
-    "TOKEN not found! You must setup the Discord TOKEN as per the README file before running this bot.",
+    "TOKEN not found! You must configure the Discord Token as environment variable or in a .env file before running this bot.",
   );
   process.kill(process.pid, "SIGTERM"); // Kill Bot
 } else {
