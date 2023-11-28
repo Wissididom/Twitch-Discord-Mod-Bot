@@ -186,11 +186,10 @@ function validateTwitchToken(
           }
         } else {
           console.log("Validating...");
-          console.log(`Client-ID: ${res.client_id}`);
           console.log(`Login-Name: ${res.login}`);
-          console.log(`Scopes: ${res.scopes.join(", ")}`);
           console.log(`User-ID: ${res.user_id}`);
           console.log(`Expires in: ${res.expires_in} seconds`);
+          console.log(`Scopes: ${res.scopes.join(", ")}`);
           resolve("Successfully validated!");
         }
       })
