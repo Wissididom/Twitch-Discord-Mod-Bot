@@ -6,7 +6,7 @@ import {
 	Partials
 } from 'discord.js';
 import express from 'express';
-import * as fs from 'node:fs';
+import * as fs from 'fs';
 import open, {openApp, apps} from 'open';
 
 import {
@@ -71,7 +71,7 @@ client.on("interactionCreate", async interaction => {
 
 async function handleCommand(interaction) {
 	console.log(`Locale:${interaction.locale}`); // TODO: Use this to respond in different languages
-	const strings = JSON.parse(fs.readFileSync(`languages/${locale}.json`));
+	const strings = fs.existsSync(`languages/${locale}.json`) ? JSON.parse(fs.readFileSync(`languages/${locale}.json`)) : JSON.parse(fs.readFileSync('languages/en-US.json'));
 	if (!process.env.ALLOWED_CHANNEL_ID) {
 		await interaction.reply({
 			content: strings['no-allowed-channel-id-error'].replace('<channel-id>', interaction.channel.id).replace('<channel-name>', interaction.channel.name),
