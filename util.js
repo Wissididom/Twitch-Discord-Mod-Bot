@@ -1,21 +1,28 @@
-function getNoAllowedChannelIdError(channel) {
-	return `Please first set a channel where you want to accept the commands! For <#${channel.id}> (${channel.name}) just set the value for \`ALLOWED_CHANNEL_ID\` to \`${channel.id}\` in the .env file!`;
+async function getStatusResponse(res, json) {
+	switch (res.status) {
+		case 400:
+			return `Bad Request: ${json.message}`;
+		case 401:
+			return `Unauthorized: ${json.message}`;
+		case 404:
+			return `Not Found: ${json.message}`;
+		case 429:
+			return `Too Many Requests: ${json.message}`;
+		default:
+			return `${json.error} (${res.status}): ${json.message}`;
+	}
 }
 
-function getChannelNotAllowedError(channel) {
-	return `<#${channel.id}> (${channel.name}) is not allowed to accept commands!`;
-}
-
-function buildPollChoices(data, create) {
+function buildPollChoices(data, create, strings) {
 	let response = [];
 	let choices = '';
 	for (let i = 0; i < data.choices.length; i++) {
 		let choice = data.choices[i];
 		response.push(`> ${choice.title}`);
-		response.push(`> > Choice-ID: ${choice.id}`);
+		response.push(`> > ${strings.poll.choice['id']}: ${choice.id}`);
 		if (!create) {
-			response.push(`> > Votes: ${choice.votes}`);
-			response.push(`> > Channel Points Votes: ${choice.channel_points_votes}`);
+			response.push(`> > ${strings.poll.choice['votes']}: ${choice.votes}`);
+			response.push(`> > ${strings.poll.choice['channel-point-votes']}: ${choice.channel_points_votes}`);
 		}
 	}
 	choices = choices.trim();
@@ -26,9 +33,4 @@ function toDiscordTimestamp(twitchTime) {
 	return `<t:${Math.floor(Date.parse(twitchTime) / 1000)}:T>`;
 }
 
-export {
-	getNoAllowedChannelIdError,
-	getChannelNotAllowedError,
-	buildPollChoices,
-	toDiscordTimestamp
-};
+export { getStatusResponse, buildPollChoices, toDiscordTimestamp };
