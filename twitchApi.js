@@ -1,208 +1,236 @@
 import * as fs from "fs";
 
-import { getPoll, getPollId, createPoll, endPoll } from "./polls.js";
 import {
-  getPrediction,
-  getPredictionId,
-  createPrediction,
-  endPrediction,
+  getPoll as getPollImpl,
+  getPollId as getPollIdImpl,
+  createPoll as createPollImpl,
+  endPoll as endPollImpl,
+} from "./polls.js";
+import {
+  getPrediction as getPredictionImpl,
+  getPredictionId as getPredictionIdImpl,
+  createPrediction as createPredictionImpl,
+  endPrediction as endPredictionImpl,
 } from "./predictions.js";
-
-import open, { openApp, apps } from "open";
 
 import { getStatusResponse } from "./util.js";
 
-async function getUser(clientId, accessToken, login) {
-  if (login) {
-    return (
-      await fetch(`https://api.twitch.tv/helix/users?login=${login}`, {
-        headers: {
-          "Client-ID": clientId,
-          Authorization: `Bearer ${accessToken}`,
+let tokens = {
+  access_token: null,
+  refresh_token: null,
+  device_code: null,
+  user_code: null,
+  verification_uri: null,
+  user_id: null,
+};
+
+const SCOPES = ["channel:manage:polls", "channel:manage:predictions"].join(" ");
+
+async function handleDcfLogin(authenticatedCallback) {
+  if (fs.existsSync("./.tokens.json")) {
+    tokens = JSON.parse(
+      fs.readFileSync("./.tokens.json", { encoding: "utf8", flag: "r" }),
+    );
+    let validated = await validate();
+    if (validated) {
+      console.log("Validated tokens and started bot");
+      await authenticatedCallback();
+      return;
+    }
+  }
+  let dcf = await fetch(
+    `https://id.twitch.tv/oauth2/device?client_id=${
+      process.env.TWITCH_CLIENT_ID
+    }&scopes=${encodeURIComponent(SCOPES)}`,
+    {
+      method: "POST",
+    },
+  );
+  if (dcf.status >= 200 && dcf.status < 300) {
+    // Successfully got DCF data
+    let dcfJson = await dcf.json();
+    tokens.device_code = dcfJson.device_code;
+    tokens.user_code = dcfJson.user_code;
+    tokens.verification_uri = dcfJson.verification_uri;
+    console.log(
+      `Open ${tokens.verification_uri} in a browser and enter ${tokens.user_code} there!`,
+    );
+  }
+  let dcfInterval = setInterval(async () => {
+    let tokenPair = await fetch(
+      `https://id.twitch.tv/oauth2/token?client_id=${
+        process.env.TWITCH_CLIENT_ID
+      }&scopes=${encodeURIComponent(SCOPES)}&device_code=${
+        tokens.device_code
+      }&grant_type=urn:ietf:params:oauth:grant-type:device_code`,
+      {
+        method: "POST",
+      },
+    );
+    if (tokenPair.status == 400) return; // Probably authorization pending
+    if (tokenPair.status >= 200 && tokenPair.status < 300) {
+      // Successfully got token pair
+      let tokenJson = await tokenPair.json();
+      tokens.access_token = tokenJson.access_token;
+      tokens.refresh_token = tokenJson.refresh_token;
+      let user = await getUser();
+      tokens.user_id = user.id;
+      fs.writeFileSync("./.tokens.json", JSON.stringify(tokens), {
+        encoding: "utf8",
+      });
+      clearInterval(dcfInterval);
+      console.log(
+        `Got Device Code Flow Tokens for ${user.display_name} (${user.login}) and started bot`,
+      );
+      await authenticatedCallback();
+      setInterval(
+        async () => {
+          await validate();
         },
-      })
-        .then((res) => res.json())
-        .catch((err) => console.error)
-    ).data[0];
+        60 * 60 * 1000 /*Run every hour*/,
+      );
+    }
+  }, 1000);
+}
+
+async function getUser() {
+  return (
+    await fetch("https://api.twitch.tv/helix/users", {
+      headers: {
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    }).then((res) => res.json())
+  ).data[0];
+}
+
+async function refresh() {
+  console.log("Refreshing tokens...");
+  let refreshResult = await fetch(
+    `https://id.twitch.tv/oauth2/token?grant_type=refresh_token&refresh_token=${encodeURIComponent(
+      tokens.refresh_token,
+    )}&client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${
+      process.env.TWITCH_CLIENT_SECRET
+    }`,
+    {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    },
+  );
+  let refreshJson = await refreshResult.json();
+  if (refreshResult.status >= 200 && refreshResult.status < 300) {
+    // Successfully refreshed
+    tokens.access_token = refreshJson.access_token;
+    tokens.refresh_token = refreshJson.refresh_token;
+    fs.writeFileSync("./.tokens.json", JSON.stringify(tokens), {
+      encoding: "utf8",
+    });
+    console.log("Successfully refreshed tokens!");
+    return true;
   } else {
-    return (
-      await fetch(`https://api.twitch.tv/helix/users`, {
-        headers: {
-          "Client-ID": clientId,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .catch((err) => console.error)
-    ).data[0];
+    // Refreshing failed
+    console.log(`Failed refreshing tokens: ${JSON.stringify(refreshJson)}`);
+    return false;
   }
 }
 
-async function getBroadcaster(clientId, accessToken) {
-  return await getUser(clientId, accessToken);
-}
-
-async function getBroadcasterId(clientId, accessToken) {
-  return (await getBroadcaster(clientId, accessToken)).id;
-}
-
-function getScopes() {
-  const scopes = [
-    "channel:read:polls",
-    "channel:read:predictions",
-    "channel:manage:polls",
-    "channel:manage:predictions",
-  ];
-  return scopes.join(" ");
-}
-
-function getValidationEndpoint() {
-  return "https://id.twitch.tv/oauth2/validate";
-}
-
-function getRefreshEndpoint(clientId, clientSecret, refreshToken) {
-  return `https://id.twitch.tv/oauth2/token?grant_type=refresh_token&refresh_token=${encodeURIComponent(
-    refreshToken,
-  )}&client_id=${clientId}&client_secret=${clientSecret}`;
-}
-
-function getAuthorizationEndpoint(
-  clientId,
-  clientSecret,
-  redirectUri,
-  port,
-  scopes,
-) {
-  return `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri,
-  )}%3A${port}&response_type=code&scope=${scopes}`;
-}
-
-function getAccessTokenByAuthTokenEndpoint(
-  clientId,
-  clientSecret,
-  code,
-  redirectUri,
-  port,
-) {
-  return `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(
-    redirectUri,
-  )}%3A${port}`;
-}
-
-function validateTwitchToken(
-  clientId,
-  clientSecret,
-  tokens,
-  redirectUri,
-  port,
-  openBrowser = true,
-) {
-  return new Promise(async (resolve, reject) => {
-    await fetch(getValidationEndpoint(), {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${tokens.access_token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then(async (res) => {
-        if (res.status) {
-          if (res.status == 401) {
-            console.log("Trying to refresh with the refresh token");
-            await fetch(
-              getRefreshEndpoint(clientId, clientSecret, tokens.refresh_token),
-              {
-                method: "POST",
-                headers: {
-                  "Client-ID": clientId,
-                  Authorization: `Bearer ${tokens.access_token}`,
-                },
-              },
-            )
-              .then((res) => res.json())
-              .then((res) => {
-                if (res.status) {
-                  console.log(
-                    "Failed to refresh the token! Try to reauthenticate!",
-                  );
-                  console.log(`Status: ${res.status}`);
-                  console.log(`Error-Message: ${res.message}`);
-                  console.log(
-                    `Open the following Website to authenticate: ${getAuthorizationEndpoint(
-                      clientId,
-                      clientSecret,
-                      redirectUri,
-                      port,
-                      getScopes(),
-                    )}`,
-                  );
-                  if (openBrowser)
-                    open(
-                      getAuthorizationEndpoint(
-                        clientId,
-                        clientSecret,
-                        redirectUri,
-                        port,
-                        getScopes(),
-                      ),
-                    );
-                } else {
-                  tokens = res;
-                  fs.writeFileSync("./.tokens.json", JSON.stringify(res));
-                  console.log("Tokens saved!");
-                  resolve("Tokens successfully refreshed!");
-                }
-              })
-              .catch((err) => {
-                console.log(
-                  "Failed to refresh the token! Try to reauthenticate!",
-                );
-                console.error(err);
-                console.log(
-                  `Open the following Website to authenticate: ${getAuthorizationEndpoint(
-                    clientId,
-                    clientSecret,
-                    redirectUri,
-                    port,
-                    getScopes(),
-                  )}`,
-                );
-                if (openBrowser)
-                  open(
-                    getAuthorizationEndpoint(
-                      clientId,
-                      clientSecret,
-                      redirectUri,
-                      port,
-                      getScopes(),
-                    ),
-                  );
-              });
-          } else {
-            console.log(`Status: ${res.status}`);
-            console.log(`Error-Message: ${res.message}`);
-            reject("Tokens couldn't be refreshed!");
-          }
-        } else {
-          console.log("Validating...");
-          console.log(`Login-Name: ${res.login}`);
-          console.log(`User-ID: ${res.user_id}`);
-          console.log(`Expires in: ${res.expires_in} seconds`);
-          console.log(`Scopes: ${res.scopes.join(", ")}`);
-          resolve("Successfully validated!");
-        }
-      })
-      .catch((err) => {
-        reject("Validation failed!");
-      });
+async function validate() {
+  tokens = JSON.parse(
+    fs.readFileSync(".tokens.json", { encoding: "utf8", flag: "r" }),
+  );
+  return await fetch("https://id.twitch.tv/oauth2/validate", {
+    method: "GET",
+    headers: {
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${tokens.access_token}`,
+    },
+  }).then(async (res) => {
+    if (res.status) {
+      if (res.status == 401) {
+        return await refresh();
+      } else if (res.status >= 200 && res.status < 300) {
+        console.log("Successfully validated tokens!");
+        return true;
+      } else {
+        console.error(
+          `Unhandled validation error: ${JSON.stringify(await res.json())}`,
+        );
+        return false;
+      }
+    } else {
+      console.error(
+        `Unhandled network error! res.status is undefined or null! ${res}`,
+      );
+      return false;
+    }
   });
 }
 
+async function getPoll(strings) {
+  return await getPollImpl(tokens, strings);
+}
+
+async function getPollId(strings) {
+  return await getPollIdImpl(tokens, strings);
+}
+
+async function createPoll(
+  title,
+  choices,
+  duration,
+  channelPointsVotingEnabled,
+  channelPointsPerVote,
+  strings,
+) {
+  return await createPollImpl(
+    tokens,
+    title,
+    choices,
+    duration,
+    channelPointsVotingEnabled,
+    channelPointsPerVote,
+    strings,
+  );
+}
+
+async function endPoll(pollId, status, strings) {
+  return await endPollImpl(tokens, pollId, status, strings);
+}
+
+async function getPrediction(strings) {
+  return await getPredictionImpl(tokens, strings);
+}
+
+async function getPredictionId(strings) {
+  return await getPredictionIdImpl(tokens, strings);
+}
+
+async function createPrediction(title, outcomes, predictionWindow, strings) {
+  return await createPredictionImpl(
+    tokens,
+    title,
+    outcomes,
+    predictionWindow,
+    strings,
+  );
+}
+
+async function endPrediction(predictionId, status, winningOutcomeId, strings) {
+  return await endPredictionImpl(
+    tokens,
+    predictionId,
+    status,
+    winningOutcomeId,
+    strings,
+  );
+}
+
 export {
+  handleDcfLogin,
   getUser,
-  getBroadcaster,
-  getBroadcasterId,
   getPoll,
   getPollId,
   createPoll,
@@ -211,10 +239,5 @@ export {
   getPredictionId,
   createPrediction,
   endPrediction,
-  getScopes,
-  getValidationEndpoint,
-  getRefreshEndpoint,
-  getAuthorizationEndpoint,
-  getAccessTokenByAuthTokenEndpoint,
-  validateTwitchToken,
+  refresh,
 };
