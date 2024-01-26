@@ -46,8 +46,9 @@ async function handleCommand(interaction) {
   const strings = fs.existsSync(`languages/${interaction.locale}.json`)
     ? JSON.parse(fs.readFileSync(`languages/${interaction.locale}.json`))
     : JSON.parse(fs.readFileSync("languages/en-US.json"));
+  await interaction.deferReply({ ephemeral: process.env.EPHEMERAL == "true" });
   if (!process.env.ALLOWED_CHANNEL_ID) {
-    await interaction.reply({
+    await interaction.editReply({
       content: strings["no-allowed-channel-id-error"]
         .replace("<channel-id>", interaction.channel.id)
         .replace("<channel-name>", interaction.channel.name),
@@ -56,7 +57,7 @@ async function handleCommand(interaction) {
     return;
   }
   if (interaction.channel.id != process.env.ALLOWED_CHANNEL_ID) {
-    await interaction.reply({
+    await interaction.editReply({
       content: strings["channel-not-allowed-error"]
         .replace("<channel-id>", interaction.channel.id)
         .replace("<channel-name>", interaction.channel.name),
@@ -64,7 +65,6 @@ async function handleCommand(interaction) {
     });
     return;
   }
-  await interaction.deferReply({ ephemeral: process.env.EPHEMERAL == "true" });
   switch (interaction.commandName) {
     case "getpoll":
       await getPollCommand(interaction, strings);
