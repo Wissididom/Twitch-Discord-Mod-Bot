@@ -117,7 +117,7 @@ async function createPollCommand(interaction, strings) {
   let durationMultiplier = 1;
   if (unit && unit.toLowerCase() == "minutes") durationMultiplier = 60;
   const cppv = interaction.options.getBoolean("channelpoints"); // Channel Points Per Vote
-  const cpve = cppv > 0; // Channel Points Voting Enabled
+  let cpve = cppv > 0; // Channel Points Voting Enabled
   if (cppv > 0 && cppv <= 1000000) {
     cpve = true;
   } else if (cppv < 0) {
