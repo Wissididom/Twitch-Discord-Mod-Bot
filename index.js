@@ -52,7 +52,6 @@ async function handleCommand(interaction) {
       content: strings["no-allowed-channel-id-error"]
         .replace("<channel-id>", interaction.channel.id)
         .replace("<channel-name>", interaction.channel.name),
-      ephemeral: process.env.EPHEMERAL == "true",
     });
     return;
   }
@@ -61,7 +60,6 @@ async function handleCommand(interaction) {
       content: strings["channel-not-allowed-error"]
         .replace("<channel-id>", interaction.channel.id)
         .replace("<channel-name>", interaction.channel.name),
-      ephemeral: process.env.EPHEMERAL == "true",
     });
     return;
   }
