@@ -72,7 +72,7 @@ async function getPoll(tokens, strings) {
     response.push(
       strings.poll["started-at"].replace(
         "<startedAt>",
-        toDiscordTimestamp(data.started_at),
+        data.started_at ? toDiscordTimestamp(data.started_at) : '(not available)',
       ),
     );
   }
@@ -188,7 +188,7 @@ async function createPoll(
     response.push(
       strings.poll["started-at"].replace(
         "<startedAt>",
-        toDiscordTimestamp(data.started_at),
+        data.started_at ? toDiscordTimestamp(data.started_at) : '(not available)',
       ),
     );
     return response.join("\n");
@@ -250,13 +250,13 @@ async function endPoll(tokens, pollId, status, strings) {
     response.push(
       strings.poll["started-at"].replace(
         "<startedAt>",
-        toDiscordTimestamp(data.started_at),
+        data.started_at ? toDiscordTimestamp(data.started_at) : '(not available)',
       ),
     );
     response.push(
       strings.poll["ended-at"].replace(
         "<endedAt>",
-        toDiscordTimestamp(data.ended_at),
+        data.ended_at ? toDiscordTimestamp(data.ended_at) : '(not available)',
       ),
     );
     return response.join("\n");

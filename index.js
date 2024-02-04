@@ -188,7 +188,7 @@ async function getPredictionCommand(interaction, strings) {
       });
     })
     .catch(async (err) => {
-      console.log(res);
+      console.log(err);
       await interaction.editReply({
         content: `Error getting prediction from Twitch: ${err}`,
       });

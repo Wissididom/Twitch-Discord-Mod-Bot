@@ -80,23 +80,24 @@ async function getPrediction(tokens, strings) {
     response.push(`${strings.prediction["status"]}: ${data.status}`);
     response.push(
       strings.prediction["created-at"].replace(
-        "<createdAt>",
-        toDiscordTimestamp(data.created_at),
+        "<startedAt>",
+        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
       ),
     );
     response.push(
       strings.prediction["ended-at"].replace(
         "<endedAt>",
-        toDiscordTimestamp(data.ended_at),
+        data.ended_at ? toDiscordTimestamp(data.ended_at) : '(not available)',
       ),
     );
     response.push(
       strings.prediction["locked-at"].replace(
         "<lockedAt>",
-        toDiscordTimestamp(data.locked_at),
+        data.locked_at ?toDiscordTimestamp(data.locked_at) : '(not available)',
       ),
     );
   }
+  return response.join("\n");
 }
 
 // https://dev.twitch.tv/docs/api/reference#get-predictions
@@ -201,8 +202,8 @@ async function createPrediction(
     response.push(`${strings.prediction["status"]}: ${data.status}`);
     response.push(
       strings.prediction["created-at"].replace(
-        "<createdAt>",
-        toDiscordTimestamp(data.created_at),
+        "<startedAt>",
+        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
       ),
     );
     return response.join("\n");
@@ -305,20 +306,20 @@ async function endPrediction(
     );
     response.push(
       strings.prediction["created-at"].replace(
-        "<createdAt>",
-        toDiscordTimestamp(data.created_at),
+        "<startedAt>",
+        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
       ),
     );
     response.push(
       strings.prediction["ended-at"].replace(
         "<endedAt>",
-        toDiscordTimestamp(data.ended_at),
+        data.ended_at ? toDiscordTimestamp(data.ended_at) : '(not available)',
       ),
     );
     response.push(
       strings.prediction["locked-at"].replace(
         "<lockedAt>",
-        toDiscordTimestamp(data.locked_at),
+        data.locked_at ? toDiscordTimestamp(data.locked_at) : '(not available)',
       ),
     );
     return response.join("\n");
