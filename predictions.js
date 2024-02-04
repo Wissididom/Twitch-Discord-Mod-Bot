@@ -81,19 +81,21 @@ async function getPrediction(tokens, strings) {
     response.push(
       strings.prediction["created-at"].replace(
         "<startedAt>",
-        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
+        data.created_at
+          ? toDiscordTimestamp(data.created_at)
+          : "(not available)",
       ),
     );
     response.push(
       strings.prediction["ended-at"].replace(
         "<endedAt>",
-        data.ended_at ? toDiscordTimestamp(data.ended_at) : '(not available)',
+        data.ended_at ? toDiscordTimestamp(data.ended_at) : "(not available)",
       ),
     );
     response.push(
       strings.prediction["locked-at"].replace(
         "<lockedAt>",
-        data.locked_at ?toDiscordTimestamp(data.locked_at) : '(not available)',
+        data.locked_at ? toDiscordTimestamp(data.locked_at) : "(not available)",
       ),
     );
   }
@@ -203,7 +205,9 @@ async function createPrediction(
     response.push(
       strings.prediction["created-at"].replace(
         "<startedAt>",
-        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
+        data.created_at
+          ? toDiscordTimestamp(data.created_at)
+          : "(not available)",
       ),
     );
     return response.join("\n");
@@ -307,19 +311,21 @@ async function endPrediction(
     response.push(
       strings.prediction["created-at"].replace(
         "<startedAt>",
-        data.created_at ? toDiscordTimestamp(data.created_at) : '(not available)',
+        data.created_at
+          ? toDiscordTimestamp(data.created_at)
+          : "(not available)",
       ),
     );
     response.push(
       strings.prediction["ended-at"].replace(
         "<endedAt>",
-        data.ended_at ? toDiscordTimestamp(data.ended_at) : '(not available)',
+        data.ended_at ? toDiscordTimestamp(data.ended_at) : "(not available)",
       ),
     );
     response.push(
       strings.prediction["locked-at"].replace(
         "<lockedAt>",
-        data.locked_at ? toDiscordTimestamp(data.locked_at) : '(not available)',
+        data.locked_at ? toDiscordTimestamp(data.locked_at) : "(not available)",
       ),
     );
     return response.join("\n");
