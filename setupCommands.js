@@ -1,365 +1,277 @@
-import * as dotenv from "dotenv";
+import * as DotEnv from "dotenv";
+DotEnv.config();
+import { REST, Routes, SlashCommandBuilder } from "discord.js";
 
-import {
-  Client,
-  GatewayIntentBits,
-  Partials,
-  ApplicationCommandType,
-  ApplicationCommandOptionType,
-} from "discord.js";
+const token = process.env.DISCORD_TOKEN;
 
-dotenv.config();
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.DirectMessages,
-  ],
-  partials: [
-    Partials.User,
-    Partials.Channel,
-    Partials.GuildMember,
-    Partials.Message,
-    Partials.Reaction,
-  ],
-});
-
-const mySecret = process.env.DISCORD_TOKEN;
-
-// Outputs console log when bot is logged in and registers all commands
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`); // Logging
-  let promises = [];
-  promises.push(
-    client.application?.commands?.create({
-      name: "getpoll",
-      nameLocalizations: {
-        de: "umfrageabrufen",
-      },
-      description:
-        "Get information about the most recent poll in the authorized Twitch channel",
-      descriptionLocalizations: {
-        de: "Informationen über die letzte Umfrage des authorisierten Twitch-Kanals abrufen",
-      },
-      type: ApplicationCommandType.ChatInput,
-    }),
+if (!token) {
+  throw new Error(
+    "DISCORD_TOKEN not found! You must setup the Discord TOKEN in the .env file or as environment variable first!",
   );
-  promises.push(
-    client.application?.commands?.create({
-      name: "poll",
-      nameLocalizations: {
-        de: "umfrage",
-      },
-      description: "Create a poll in the authorized Twitch channel",
-      descriptionLocalizations: {
-        de: "Eine Umfrage im authorisierten Twitch-Kanal erstellen",
-      },
-      type: ApplicationCommandType.ChatInput,
-      options: [
-        {
-          name: "title",
-          nameLocalizations: {
-            de: "frage",
-          },
-          description: "Title displayed in the poll",
-          descriptionLocalizations: {
-            de: "Der Titel, der in der Umfrage angezeigt werden soll",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-        },
-        {
-          name: "choices",
-          nameLocalizations: {
-            de: "antworten",
-          },
-          description: "List of the poll choices (separated by semicolon)",
-          descriptionLocalizations: {
-            de: "Eine Liste an Antwortmöglichkeiten (getrennt durch Strichpunkte/Semikolon)",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-        },
-        {
-          name: "duration",
-          nameLocalizations: {
-            de: "dauer",
-          },
-          description: "Total duration for the poll (Default: in seconds).",
-          descriptionLocalizations: {
-            de: "Gesamtdauer der Umfrage (Standardmäßig in Sekunden)",
-          },
-          type: ApplicationCommandOptionType.Integer,
-          required: true,
-        },
-        {
-          name: "unit",
-          nameLocalizations: {
-            de: "einheit",
-          },
-          description: "Which unit to use for the duration",
-          descriptionLocalizations: {
-            de: "Welche Einheit soll für die Dauer genutzt werden",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: false,
-          choices: [
-            {
-              name: "Minutes",
-              nameLocalizations: {
-                de: "Minuten",
-              },
-              value: "minutes",
-            },
-            {
-              name: "Seconds",
-              nameLocalizations: {
-                de: "Sekunden",
-              },
-              value: "seconds",
-            },
-          ],
-        },
-        {
-          name: "channelpoints",
-          nameLocalizations: {
-            de: "kanalpunkte",
-          },
-          description: "Indicates if Channel Points can be used for voting",
-          descriptionLocalizations: {
-            de: "Gibt an, ob Kanalpunkte für die Abstimmung verwendet werden können",
-          },
-          type: ApplicationCommandOptionType.Boolean,
-          required: false,
-        },
-        {
-          name: "cpnumber",
-          nameLocalizations: {
-            de: "kpanzahl",
-          },
-          description:
-            "Number of Channel Points required to vote once with Channel Points.",
-          descriptionLocalizations: {
-            de: "Anzahl der Kanalpunkte, die für eine Stimme mit Kanalpunkten benötigt wird",
-          },
-          type: ApplicationCommandOptionType.Integer,
-          required: false,
-        },
-      ],
-    }),
-  );
-  promises.push(
-    client.application?.commands?.create({
-      name: "endpoll",
-      nameLocalizations: {
-        de: "umfragebeenden",
-      },
-      description: "End the poll that is currently active",
-      descriptionLocalizations: {
-        de: "Die Umfrage, die aktuell läuft, beenden",
-      },
-      type: ApplicationCommandType.ChatInput,
-      options: [
-        {
-          name: "status",
-          nameLocalizations: {
-            de: "status",
-          },
-          description: "The poll status to be set",
-          descriptionLocalizations: {
-            de: "Der Status, auf den die Umfrage gesetzt werden soll",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-          choices: [
-            {
-              name: "Terminated (End the poll manually, but allow it to be viewed publicly)",
-              nameLocalizations: {
-                de: "Beendet (Umfrage manuell beenden, aber öffentlich sichtbar lassen)",
-              },
-              value: "TERMINATED",
-            },
-            {
-              name: "Archived (End the poll manually and do not allow it to be viewed publicly)",
-              nameLocalizations: {
-                de: "Archiviert (Umfrage manuell beenden und auf privat stellen)",
-              },
-              value: "ARCHIVED",
-            },
-          ],
-        },
-      ],
-    }),
-  );
-  promises.push(
-    client.application?.commands?.create({
-      name: "getprediction",
-      nameLocalizations: {
-        de: "vorhersageabrufen",
-      },
-      description:
-        "Get information about the most recent prediction in the authorized Twitch channel",
-      descriptionLocalizations: {
-        de: "Informationen über die letzte Vorhersage des authorisierten Twitch-Kanals abrufen",
-      },
-      type: ApplicationCommandType.ChatInput,
-    }),
-  );
-  promises.push(
-    client.application?.commands?.create({
-      name: "prediction",
-      nameLocalizations: {
-        de: "vorhersage",
-      },
-      description: "Create a prediction in the authorized Twitch channel",
-      descriptionLocalizations: {
-        de: "Eine Vorhersage im authorisierten Twitch-Kanal erstellen",
-      },
-      type: ApplicationCommandType.ChatInput,
-      options: [
-        {
-          name: "title",
-          nameLocalizations: {
-            de: "titel",
-          },
-          description: "Title for the prediction",
-          descriptionLocalizations: {
-            de: "Titel für die Vorhersage",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-        },
-        {
-          name: "outcomes",
-          nameLocalizations: {
-            de: "ergebnisse",
-          },
-          description: "List of the outcomes (separated by semicolon)",
-          descriptionLocalizations: {
-            de: "Liste der möglichen Ergebnisse (getrennt durch Strichpunkte/Semikolon)",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-        },
-        {
-          name: "duration", // prediction window
-          nameLocalizations: {
-            de: "dauer",
-          },
-          description:
-            "Total duration for the prediction (Default: in seconds)",
-          descriptionLocalizations: {
-            de: "Gesamtdauer der Vorhersage (Standardmäßig in Sekunden)",
-          },
-          type: ApplicationCommandOptionType.Integer,
-          required: true,
-        },
-        {
-          name: "unit",
-          nameLocalizations: {
-            de: "einheit",
-          },
-          description: "Which unit to use for duration",
-          descriptionLocalizations: {
-            de: "Welche Einheit soll für die Dauer genutzt werden",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: false,
-          choices: [
-            {
-              name: "Minutes",
-              nameLocalizations: {
-                de: "Minuten",
-              },
-              value: "minutes",
-            },
-            {
-              name: "Seconds",
-              nameLocalizations: {
-                de: "Sekunden",
-              },
-              value: "seconds",
-            },
-          ],
-        },
-      ],
-    }),
-  );
-  promises.push(
-    client.application?.commands?.create({
-      name: "endprediction",
-      nameLocalizations: {
-        de: "vorhersagebeeenden",
-      },
-      description: "Lock, resolve, or cancel a prediction",
-      descriptionLocalizations: {
-        de: "Eine Vorhersage sperren, auflösen oder abbrechen",
-      },
-      type: ApplicationCommandType.ChatInput,
-      options: [
-        {
-          name: "status",
-          /*nameLocalizations: {
-            de: 'status'
-          },*/
-          description: "The prediction status to be set",
-          descriptionLocalizations: {
-            de: "Der Status, auf den die Vorhersage gesetzt werden soll",
-          },
-          type: ApplicationCommandOptionType.String,
-          required: true,
-          choices: [
-            {
-              name: "Resolved (A winning outcome has been chosen and the Channel Points have been distributed)",
-              nameLocalizations: {
-                de: "Aufgelöst (Ein Gewinner wurde ausgewählt und die Kanalpunkte wurden verteilt)",
-              },
-              value: "RESOLVED",
-            },
-            {
-              name: "Canceled (The prediction has been canceled and the Channel Points have been refunded)",
-              nameLocalizations: {
-                de: "Abgebrochen (Die Vorhersage wurde abgebrochen und die Kanalpunkte wurden zurückerstattet)",
-              },
-              value: "CANCELED",
-            },
-            {
-              name: "Locked (The prediction has been locked and viewers can no longer make predictions)",
-              nameLocalizations: {
-                de: "Gesperrt (Die Vorhersage wurde gesperrt und Zuschauer können nicht länger vorhersagen)",
-              },
-              value: "LOCKED",
-            },
-          ],
-        },
-        {
-          name: "winning_outcome_id",
-          nameLocalizations: {
-            de: "gewinnendes_ergebnis_id",
-          },
-          description:
-            'ID of the winning outcome for the prediction (Required if status is "Resolved")',
-          descriptionLocalizations: {
-            de: 'ID des Ergebnisses, welches die Vorhersage gewinnen soll (Erforderlich, wenn status "Aufgelöst" ist)',
-          },
-          type: ApplicationCommandOptionType.String,
-          required: false,
-        },
-      ],
-    }),
-  );
-  Promise.all(promises).then((/*resolvedPromises*/) => {
-    process.kill(process.pid, "SIGTERM"); // Kill Bot
-  });
-});
-
-if (!mySecret) {
-  console.log(
-    "TOKEN not found! You must setup the Discord TOKEN as per the README file before running this bot.",
-  );
-  process.kill(process.pid, "SIGTERM"); // Kill Bot
-} else {
-  // Logs in with secret TOKEN
-  client.login(mySecret);
 }
+
+const rest = new REST().setToken(token);
+
+const commands = [
+  new SlashCommandBuilder()
+    .setName("getpoll")
+    .setNameLocalizations({ de: "umfrageabrufen" })
+    .setDescription(
+      "Get information about the most recent poll in the authorized Twitch channel",
+    )
+    .setDescriptionLocalizations({
+      de: "Informationen über die letzte Umfrage des authorisierten Twitch-Kanals abrufen",
+    }),
+  new SlashCommandBuilder()
+    .setName("poll")
+    .setNameLocalizations({ de: "umfrage" })
+    .setDescription("Create a poll in the authorized Twitch channel")
+    .setDescriptionLocalizations({
+      de: "Eine Umfrage im authorisierten Twitch-Kanal erstellen",
+    })
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setNameLocalizations({ de: "frage" })
+        .setDescription("Title displayed in the poll")
+        .setDescriptionLocalizations({
+          de: "Der Titel, der in der Umfrage angezeigt werden soll",
+        })
+        .setRequired(true),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("choices")
+        .setNameLocalizations({ de: "antworten" })
+        .setDescription("List of the poll choices (separated by semicolon)")
+        .setDescriptionLocalizations({
+          de: "Eine Liste an Antwortmöglichkeiten (getrennt durch Strichpunkte/Semikolon)",
+        })
+        .setRequired(true),
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("duration")
+        .setNameLocalizations({ de: "dauer" })
+        .setDescription("Total duration for the poll (Default: in seconds).")
+        .setDescriptionLocalizations({
+          de: "Gesamtdauer der Umfrage (Standardmäßig in Sekunden)",
+        })
+        .setRequired(true),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("unit")
+        .setNameLocalizations({ de: "einheit" })
+        .setDescription("Which unit to use for the duration")
+        .setDescriptionLocalizations({
+          de: "Welche Einheit soll für die Dauer genutzt werden",
+        })
+        .setChoices(
+          {
+            name: "Minutes",
+            nameLocalizations: {
+              de: "Minuten",
+            },
+            value: "minutes",
+          },
+          {
+            name: "Seconds",
+            nameLocalizations: {
+              de: "Sekunden",
+            },
+            value: "seconds",
+          },
+        )
+        .setRequired(false),
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("channelpoints")
+        .setNameLocalizations({ de: "kanalpunkte" })
+        .setDescription(
+          "Number of Channel Points required to vote once with Channel Points.",
+        )
+        .setDescriptionLocalizations({
+          de: "Anzahl der Kanalpunkte, die für eine Stimme mit Kanalpunkten benötigt wird",
+        })
+        .setRequired(false),
+    ),
+  new SlashCommandBuilder()
+    .setName("endpoll")
+    .setNameLocalizations({ de: "umfragebeenden" })
+    .setDescription("End the poll that is currently active")
+    .setDescriptionLocalizations({
+      de: "Die Umfrage, die aktuell läuft, beenden",
+    })
+    .addStringOption((option) =>
+      option
+        .setName("status")
+        .setNameLocalizations({ de: "status" })
+        .setDescription("The poll status to be set")
+        .setDescriptionLocalizations({
+          de: "Die Umfrage, die aktuell läuft, beenden",
+        })
+        .setChoices(
+          {
+            name: "Terminated (End the poll manually, but allow it to be viewed publicly)",
+            nameLocalizations: {
+              de: "Beendet (Umfrage manuell beenden, aber öffentlich sichtbar lassen)",
+            },
+            value: "TERMINATED",
+          },
+          {
+            name: "Archived (End the poll manually and do not allow it to be viewed publicly)",
+            nameLocalizations: {
+              de: "Archiviert (Umfrage manuell beenden und auf privat stellen)",
+            },
+            value: "ARCHIVED",
+          },
+        )
+        .setRequired(true),
+    ),
+  new SlashCommandBuilder()
+    .setName("getprediction")
+    .setNameLocalizations({ de: "vorhersageabrufen" })
+    .setDescription(
+      "Get information about the most recent prediction in the authorized Twitch channel",
+    )
+    .setDescriptionLocalizations({
+      de: "Informationen über die letzte Vorhersage des authorisierten Twitch-Kanals abrufen",
+    }),
+  new SlashCommandBuilder()
+    .setName("prediction")
+    .setNameLocalizations({ de: "vorhersage" })
+    .setDescription("Create a prediction in the authorized Twitch channel")
+    .setDescriptionLocalizations({
+      de: "Eine Vorhersage im authorisierten Twitch-Kanal erstellen",
+    })
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setNameLocalizations({ de: "titel" })
+        .setDescription("Title for the prediction")
+        .setDescriptionLocalizations({
+          de: "Titel für die Vorhersage",
+        })
+        .setRequired(true),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("outcomes")
+        .setNameLocalizations({ de: "ergebnisse" })
+        .setDescription("List of the outcomes (separated by semicolon)")
+        .setDescriptionLocalizations({
+          de: "Liste der möglichen Ergebnisse (getrennt durch Strichpunkte/Semikolon)",
+        })
+        .setRequired(true),
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("duration")
+        .setNameLocalizations({ de: "dauer" })
+        .setDescription(
+          "Total duration for the prediction (Default: in seconds)",
+        )
+        .setDescriptionLocalizations({
+          de: "Gesamtdauer der Vorhersage (Standardmäßig in Sekunden)",
+        })
+        .setRequired(true),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("unit")
+        .setNameLocalizations({ de: "einheit" })
+        .setDescription("Which unit to use for duration")
+        .setDescriptionLocalizations({
+          de: "Welche Einheit soll für die Dauer genutzt werden",
+        })
+        .setChoices(
+          {
+            name: "Minutes",
+            nameLocalizations: {
+              de: "Minuten",
+            },
+            value: "minutes",
+          },
+          {
+            name: "Seconds",
+            nameLocalizations: {
+              de: "Sekunden",
+            },
+            value: "seconds",
+          },
+        )
+        .setRequired(false),
+    ),
+  new SlashCommandBuilder()
+    .setName("endprediction")
+    .setNameLocalizations({ de: "vorhersagebeenden" })
+    .setDescription("Lock, resolve, or cancel a prediction")
+    .setDescriptionLocalizations({
+      de: "Eine Vorhersage sperren, auflösen oder abbrechen",
+    })
+    .addStringOption((option) =>
+      option
+        .setName("status")
+        .setNameLocalizations({ de: "status" })
+        .setDescription("The prediction status to be set")
+        .setDescriptionLocalizations({
+          de: "Der Status, auf den die Vorhersage gesetzt werden soll",
+        })
+        .setChoices(
+          {
+            name: "Resolved (A winning outcome has been chosen and the Channel Points have been distributed)",
+            nameLocalizations: {
+              de: "Aufgelöst (Ein Gewinner wurde ausgewählt und die Kanalpunkte wurden verteilt)",
+            },
+            value: "RESOLVED",
+          },
+          {
+            name: "Canceled (The prediction has been canceled and the Channel Points have been refunded)",
+            nameLocalizations: {
+              de: "Abgebrochen (Die Vorhersage wurde abgebrochen und die Kanalpunkte wurden zurückerstattet)",
+            },
+            value: "CANCELED",
+          },
+          {
+            name: "Locked (The prediction has been locked and viewers can no longer make predictions)",
+            nameLocalizations: {
+              de: "Gesperrt (Die Vorhersage wurde gesperrt und Zuschauer können nicht länger vorhersagen)",
+            },
+            value: "LOCKED",
+          },
+        )
+        .setRequired(true),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("winning_outcome_id")
+        .setNameLocalizations({ de: "gewinnendes_ergebnis_id" })
+        .setDescription(
+          'ID of the winning outcome for the prediction (Required if status is "Resolved")',
+        )
+        .setDescriptionLocalizations({
+          de: 'ID des Ergebnisses, welches die Vorhersage gewinnen soll (Erforderlich, wenn status "Aufgelöst" ist)',
+        })
+        .setRequired(false),
+    ),
+];
+
+(async () => {
+  try {
+    console.log(
+      `Started refreshing ${commands.length} application (/) commands.`,
+    );
+    const userData = await rest.get(Routes.user());
+    const userId = userData.id;
+    const data = await rest.put(Routes.applicationCommands(userId), {
+      body: commands,
+    });
+    console.log(
+      `Successfully reloaded ${data.length} application (/) commands.`,
+    );
+  } catch (err) {
+    console.error(err);
+  }
+})();
