@@ -1,5 +1,4 @@
-import * as dotenv from "dotenv";
-
+import "dotenv/config";
 import { Client, Events, GatewayIntentBits, Partials } from "discord.js";
 import * as fs from "fs";
 
@@ -14,8 +13,6 @@ import {
   createPrediction,
   endPrediction,
 } from "./twitchApi.js";
-
-dotenv.config();
 
 const client = new Client({
   intents: [
