@@ -125,6 +125,8 @@ async function refresh() {
     // Successfully refreshed
     tokens.access_token = refreshJson.access_token;
     tokens.refresh_token = refreshJson.refresh_token;
+    let user = await getUser();
+    tokens.user_id = user.id;
     fs.writeFileSync("./.tokens.json", JSON.stringify(tokens), {
       encoding: "utf8",
     });
