@@ -15,7 +15,7 @@ import {
 } from "./twitchApi.js";
 
 const client = new Client({
-  intents: [],
+  intents: [GatewayIntentBits.Guilds],
   partials: [],
 });
 
