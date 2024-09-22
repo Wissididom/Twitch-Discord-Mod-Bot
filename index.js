@@ -15,18 +15,8 @@ import {
 } from "./twitchApi.js";
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.DirectMessages,
-  ],
-  partials: [
-    Partials.User,
-    Partials.Channel,
-    Partials.GuildMember,
-    Partials.Message,
-    Partials.Reaction,
-  ],
+  intents: [],
+  partials: [],
 });
 
 // Outputs console log when bot is logged in
