@@ -1,5 +1,11 @@
 import "dotenv/config";
-import { Client, Events, GatewayIntentBits, Partials } from "discord.js";
+import {
+  Client,
+  Events,
+  GatewayIntentBits,
+  MessageFlags,
+  Partials,
+} from "discord.js";
 import * as fs from "fs";
 
 import {
@@ -33,7 +39,11 @@ async function handleCommand(interaction) {
   const strings = fs.existsSync(`languages/${interaction.locale}.json`)
     ? JSON.parse(fs.readFileSync(`languages/${interaction.locale}.json`))
     : JSON.parse(fs.readFileSync("languages/en-US.json"));
-  await interaction.deferReply({ ephemeral: process.env.EPHEMERAL == "true" });
+  if (process.env.EPHEMERAL == "true") {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  } else {
+    await interaction.deferReply();
+  }
   if (!process.env.ALLOWED_CHANNEL_ID) {
     await interaction.editReply({
       content: strings["no-allowed-channel-id-error"]
