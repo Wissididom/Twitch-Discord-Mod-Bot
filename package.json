@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^14.25.1",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.4"
   },
   "devDependencies": {
     "prettier": "^3.8.1"
